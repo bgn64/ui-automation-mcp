@@ -16,6 +16,7 @@ builder.Logging.AddConsole(options =>
 // Register Core services
 builder.Services.AddSingleton<ElementCache>();
 builder.Services.AddSingleton<IUIAutomationService, UIAutomationService>();
+builder.Services.AddSingleton<IScreenCaptureService, ScreenCaptureService>();
 
 // Register MCP server with stdio transport and auto-discovered tools
 builder.Services
