@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -29,11 +30,16 @@ public sealed class ScreenCaptureTools
         "- To diagnose unexpected behavior when other tools return ambiguous results\n\n" +
         "The screenshot covers the full virtual screen (all monitors). " +
         "No parameters are required.")]
-    public CallToolResult TakeScreenshot()
+    public CallToolResult TakeScreenshot(
+        [Description("Optional zero-based monitor index. When omitted, captures the full virtual screen (all monitors). " +
+                     "When specified, captures only that monitor. Use list_monitors to discover available indices.")]
+        int? monitorIndex = null)
     {
         try
         {
-            byte[] pngBytes = _captureService.CaptureScreen();
+            byte[] pngBytes = monitorIndex.HasValue
+                ? _captureService.CaptureMonitor(monitorIndex.Value)
+                : _captureService.CaptureScreen();
 
             return new CallToolResult
             {
@@ -43,9 +49,51 @@ public sealed class ScreenCaptureTools
                 ]
             };
         }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            return new CallToolResult
+            {
+                IsError = true,
+                Content =
+                [
+                    new TextContentBlock { Text = ex.Message }
+                ]
+            };
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error in tool '{ToolName}'", nameof(TakeScreenshot));
+            return new CallToolResult
+            {
+                IsError = true,
+                Content =
+                [
+                    new TextContentBlock { Text = $"{ex.GetType().Name}: {ex.Message}" }
+                ]
+            };
+        }
+    }
+
+    [McpServerTool(Name = "list_monitors", ReadOnly = true), Description(
+        "Lists all connected monitors with their indices, device names, bounds (in physical pixels), " +
+        "and whether each is the primary display. Use this to discover valid monitorIndex values for take_screenshot.")]
+    public CallToolResult ListMonitors()
+    {
+        try
+        {
+            var monitors = _captureService.GetMonitors();
+            var json = JsonSerializer.Serialize(monitors, SerializerOptions.Default);
+            return new CallToolResult
+            {
+                Content =
+                [
+                    new TextContentBlock { Text = json }
+                ]
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error in tool '{ToolName}'", nameof(ListMonitors));
             return new CallToolResult
             {
                 IsError = true,

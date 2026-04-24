@@ -27,4 +27,60 @@ public class ScreenCaptureServiceTests
         Assert.True(result.Length >= PngSignature.Length, "Result is too short to contain a PNG header.");
         Assert.Equal(PngSignature, result[..PngSignature.Length]);
     }
+
+    [Fact]
+    public void GetMonitors_ReturnsAtLeastOneMonitor()
+    {
+        var monitors = _service.GetMonitors();
+        Assert.NotEmpty(monitors);
+    }
+
+    [Fact]
+    public void GetMonitors_AllMonitorsHavePositiveDimensions()
+    {
+        var monitors = _service.GetMonitors();
+        foreach (var monitor in monitors)
+        {
+            Assert.True(monitor.Width > 0, $"Monitor {monitor.Index} ({monitor.DeviceName}) has non-positive width: {monitor.Width}");
+            Assert.True(monitor.Height > 0, $"Monitor {monitor.Index} ({monitor.DeviceName}) has non-positive height: {monitor.Height}");
+        }
+    }
+
+    [Fact]
+    public void GetMonitors_ExactlyOnePrimaryMonitor()
+    {
+        var monitors = _service.GetMonitors();
+        int primaryCount = monitors.Count(m => m.IsPrimary);
+        Assert.Equal(1, primaryCount);
+    }
+
+    [Fact]
+    public void GetMonitors_IndicesAreSequentialFromZero()
+    {
+        var monitors = _service.GetMonitors();
+        for (int i = 0; i < monitors.Count; i++)
+        {
+            Assert.Equal(i, monitors[i].Index);
+        }
+    }
+
+    [Fact]
+    public void CaptureMonitor_FirstMonitor_ReturnsValidPng()
+    {
+        byte[] result = _service.CaptureMonitor(0);
+        Assert.True(result.Length >= PngSignature.Length, "Result is too short to contain a PNG header.");
+        Assert.Equal(PngSignature, result[..PngSignature.Length]);
+    }
+
+    [Fact]
+    public void CaptureMonitor_InvalidIndex_ThrowsArgumentOutOfRangeException()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => _service.CaptureMonitor(999));
+    }
+
+    [Fact]
+    public void CaptureMonitor_NegativeIndex_ThrowsArgumentOutOfRangeException()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => _service.CaptureMonitor(-1));
+    }
 }
