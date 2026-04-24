@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/UIAutomation.Core/UIAutomation.Core.csproj" />
+    <Project Path="src/UIAutomation.Mcp/UIAutomation.Mcp.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/UIAutomation.Core.Tests/UIAutomation.Core.Tests.csproj" />
+  </Folder>
+</Solution>
