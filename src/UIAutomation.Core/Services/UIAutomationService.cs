@@ -257,6 +257,248 @@ public sealed class UIAutomationService : IUIAutomationService
         }
     });
 
+    public string ExpandElement(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out var pattern))
+        {
+            var expandCollapse = (ExpandCollapsePattern)pattern;
+            expandCollapse.Expand();
+            return expandCollapse.Current.ExpandCollapseState.ToString();
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support ExpandCollapsePattern.");
+    });
+
+    public string CollapseElement(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out var pattern))
+        {
+            var expandCollapse = (ExpandCollapsePattern)pattern;
+            expandCollapse.Collapse();
+            return expandCollapse.Current.ExpandCollapseState.ToString();
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support ExpandCollapsePattern.");
+    });
+
+    public void SelectElement(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern))
+        {
+            ((SelectionItemPattern)pattern).Select();
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support SelectionItemPattern.");
+    });
+
+    public void DeselectElement(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern))
+        {
+            ((SelectionItemPattern)pattern).RemoveFromSelection();
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support SelectionItemPattern.");
+    });
+
+    public SelectionInfo GetSelection(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(SelectionPattern.Pattern, out var pattern))
+        {
+            var selection = (SelectionPattern)pattern;
+            var selectedElements = selection.Current.GetSelection();
+            var items = new List<ElementInfo>();
+
+            foreach (AutomationElement selected in selectedElements)
+            {
+                try { items.Add(ToElementInfo(selected)); }
+                catch (ElementNotAvailableException) { }
+            }
+
+            return new SelectionInfo
+            {
+                SelectedItems = items,
+                CanSelectMultiple = selection.Current.CanSelectMultiple,
+                IsSelectionRequired = selection.Current.IsSelectionRequired,
+            };
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support SelectionPattern.");
+    });
+
+    public string SetWindowVisualState(string elementId, string state) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (!element.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern))
+        {
+            throw new InvalidOperationException(
+                $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support WindowPattern.");
+        }
+
+        var windowPattern = (WindowPattern)pattern;
+        var visualState = state.ToLowerInvariant() switch
+        {
+            "minimized" => WindowVisualState.Minimized,
+            "maximized" => WindowVisualState.Maximized,
+            "normal" => WindowVisualState.Normal,
+            _ => throw new ArgumentException(
+                $"Invalid window state '{state}'. Valid values: minimized, maximized, normal."),
+        };
+
+        windowPattern.SetWindowVisualState(visualState);
+        return windowPattern.Current.WindowVisualState.ToString();
+    });
+
+    public void CloseWindow(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern))
+        {
+            ((WindowPattern)pattern).Close();
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support WindowPattern.");
+    });
+
+    public WindowInfo GetWindowInfo(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern))
+        {
+            var windowPattern = (WindowPattern)pattern;
+            return new WindowInfo
+            {
+                WindowVisualState = windowPattern.Current.WindowVisualState.ToString(),
+                WindowInteractionState = windowPattern.Current.WindowInteractionState.ToString(),
+                CanMaximize = windowPattern.Current.CanMaximize,
+                CanMinimize = windowPattern.Current.CanMinimize,
+                IsModal = windowPattern.Current.IsModal,
+                IsTopmost = windowPattern.Current.IsTopmost,
+            };
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support WindowPattern.");
+    });
+
+    public ScrollInfo Scroll(string elementId, string? horizontalAmount, string? verticalAmount) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (!element.TryGetCurrentPattern(ScrollPattern.Pattern, out var pattern))
+        {
+            throw new InvalidOperationException(
+                $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support ScrollPattern.");
+        }
+
+        var scrollPattern = (ScrollPattern)pattern;
+
+        var hAmount = ParseScrollAmount(horizontalAmount, "horizontalAmount");
+        var vAmount = ParseScrollAmount(verticalAmount, "verticalAmount");
+
+        if (hAmount != ScrollAmount.NoAmount)
+            scrollPattern.ScrollHorizontal(hAmount);
+        if (vAmount != ScrollAmount.NoAmount)
+            scrollPattern.ScrollVertical(vAmount);
+
+        return ToScrollInfo(scrollPattern);
+    });
+
+    public ScrollInfo SetScrollPercent(string elementId, double? horizontalPercent, double? verticalPercent) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (!element.TryGetCurrentPattern(ScrollPattern.Pattern, out var pattern))
+        {
+            throw new InvalidOperationException(
+                $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support ScrollPattern.");
+        }
+
+        var scrollPattern = (ScrollPattern)pattern;
+
+        // -1 is the UIA sentinel for "no scroll" (don't change this axis)
+        const double NoScroll = -1;
+        scrollPattern.SetScrollPercent(
+            horizontalPercent ?? NoScroll,
+            verticalPercent ?? NoScroll);
+
+        return ToScrollInfo(scrollPattern);
+    });
+
+    public void ScrollIntoView(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(ScrollItemPattern.Pattern, out var pattern))
+        {
+            ((ScrollItemPattern)pattern).ScrollIntoView();
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support ScrollItemPattern.");
+    });
+
+    public ElementInfo GetFocusedElement() => RunOnSta(() =>
+    {
+        var focused = AutomationElement.FocusedElement;
+        if (focused == null)
+            throw new InvalidOperationException("No element currently has keyboard focus.");
+
+        return ToElementInfo(focused);
+    });
+
+    public void SetFocus(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+        element.SetFocus();
+    });
+
+    public void SendKeys(string elementId, string keys) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        // Serialize all physical input to prevent focus/cursor races.
+        lock (PhysicalInputLock)
+        {
+            element.SetFocus();
+            Thread.Sleep(50); // Brief pause to let focus settle
+
+            var inputs = KeyInputParser.Parse(keys);
+            if (inputs.Length == 0)
+                return;
+
+            uint sent = NativeMethods.SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<NativeMethods.INPUT>());
+            if (sent != inputs.Length)
+            {
+                throw new InvalidOperationException(
+                    $"SendInput failed: sent {sent} of {inputs.Length} keyboard events (error {Marshal.GetLastWin32Error()}).");
+            }
+        }
+    });
+
     public ElementQueryResult QueryElements(string rootElementId, ElementQueryOptions? options = null) => RunOnSta(() =>
     {
         var root = GetCachedElement(rootElementId);
@@ -515,6 +757,13 @@ public sealed class UIAutomationService : IUIAutomationService
             IsOffscreen = current.IsOffscreen,
             ProcessId = current.ProcessId,
             SupportedPatterns = patterns,
+            HasKeyboardFocus = current.HasKeyboardFocus,
+            IsKeyboardFocusable = current.IsKeyboardFocusable,
+            HelpText = NullIfEmpty(current.HelpText),
+            AcceleratorKey = NullIfEmpty(current.AcceleratorKey),
+            AccessKey = NullIfEmpty(current.AccessKey),
+            NativeWindowHandle = current.NativeWindowHandle != 0 ? current.NativeWindowHandle : null,
+            FrameworkId = NullIfEmpty(current.FrameworkId),
         };
     }
 
@@ -536,6 +785,40 @@ public sealed class UIAutomationService : IUIAutomationService
 
     private static double SanitizeDouble(double value) =>
         double.IsInfinity(value) || double.IsNaN(value) ? 0 : value;
+
+    private static string? NullIfEmpty(string? s) =>
+        string.IsNullOrEmpty(s) ? null : s;
+
+    private static ScrollAmount ParseScrollAmount(string? amount, string paramName)
+    {
+        if (string.IsNullOrEmpty(amount))
+            return ScrollAmount.NoAmount;
+
+        return amount.ToLowerInvariant() switch
+        {
+            "smallincrement" => ScrollAmount.SmallIncrement,
+            "largeincrement" => ScrollAmount.LargeIncrement,
+            "smalldecrement" => ScrollAmount.SmallDecrement,
+            "largedecrement" => ScrollAmount.LargeDecrement,
+            "noamount" => ScrollAmount.NoAmount,
+            _ => throw new ArgumentException(
+                $"Invalid scroll amount '{amount}' for {paramName}. " +
+                "Valid values: SmallIncrement, LargeIncrement, SmallDecrement, LargeDecrement, NoAmount."),
+        };
+    }
+
+    private static ScrollInfo ToScrollInfo(ScrollPattern scrollPattern)
+    {
+        return new ScrollInfo
+        {
+            HorizontalScrollPercent = SanitizeDouble(scrollPattern.Current.HorizontalScrollPercent),
+            VerticalScrollPercent = SanitizeDouble(scrollPattern.Current.VerticalScrollPercent),
+            HorizontalViewSize = SanitizeDouble(scrollPattern.Current.HorizontalViewSize),
+            VerticalViewSize = SanitizeDouble(scrollPattern.Current.VerticalViewSize),
+            HorizontallyScrollable = scrollPattern.Current.HorizontallyScrollable,
+            VerticallyScrollable = scrollPattern.Current.VerticallyScrollable,
+        };
+    }
 
     private List<ElementInfo> GetChildrenRecursive(AutomationElement parent, TreeWalker walker, int remainingDepth)
     {
@@ -610,58 +893,5 @@ public sealed class UIAutomationService : IUIAutomationService
     private static ControlType? ParseControlType(string name)
     {
         return ControlTypeMap.TryGetValue(name, out var ct) ? ct : null;
-    }
-
-    /// <summary>
-    /// Win32 P/Invoke declarations for physical mouse input simulation.
-    /// </summary>
-    private static class NativeMethods
-    {
-        internal const int INPUT_MOUSE = 0;
-        internal const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
-        internal const uint MOUSEEVENTF_LEFTUP = 0x0004;
-
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool SetCursorPos(int x, int y);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool GetCursorPos(out POINT lpPoint);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct POINT
-        {
-            public int X;
-            public int Y;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct INPUT
-        {
-            public int type;
-            public INPUTUNION union;
-        }
-
-        [StructLayout(LayoutKind.Explicit)]
-        internal struct INPUTUNION
-        {
-            [FieldOffset(0)]
-            public MOUSEINPUT mi;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct MOUSEINPUT
-        {
-            public int dx;
-            public int dy;
-            public uint mouseData;
-            public uint dwFlags;
-            public uint time;
-            public IntPtr dwExtraInfo;
-        }
     }
 }

@@ -44,4 +44,46 @@ public interface IUIAutomationService
     /// This is a fallback for elements that do not support InvokePattern.
     /// </summary>
     void ClickAtPoint(string elementId);
+
+    /// <summary>Expands an element using ExpandCollapsePattern. Returns the new state.</summary>
+    string ExpandElement(string elementId);
+
+    /// <summary>Collapses an element using ExpandCollapsePattern. Returns the new state.</summary>
+    string CollapseElement(string elementId);
+
+    /// <summary>Selects an element using SelectionItemPattern.Select().</summary>
+    void SelectElement(string elementId);
+
+    /// <summary>Removes an element from the selection using SelectionItemPattern.RemoveFromSelection().</summary>
+    void DeselectElement(string elementId);
+
+    /// <summary>Gets selection information from a container using SelectionPattern.</summary>
+    SelectionInfo GetSelection(string elementId);
+
+    /// <summary>Sets the visual state of a window (Minimized, Maximized, Normal) using WindowPattern.</summary>
+    string SetWindowVisualState(string elementId, string state);
+
+    /// <summary>Closes a window using WindowPattern.Close().</summary>
+    void CloseWindow(string elementId);
+
+    /// <summary>Gets window information using WindowPattern.</summary>
+    WindowInfo GetWindowInfo(string elementId);
+
+    /// <summary>Scrolls a container element using ScrollPattern with relative amounts.</summary>
+    ScrollInfo Scroll(string elementId, string? horizontalAmount, string? verticalAmount);
+
+    /// <summary>Scrolls a container element using ScrollPattern to an absolute scroll position.</summary>
+    ScrollInfo SetScrollPercent(string elementId, double? horizontalPercent, double? verticalPercent);
+
+    /// <summary>Scrolls an element into view using ScrollItemPattern.</summary>
+    void ScrollIntoView(string elementId);
+
+    /// <summary>Gets the currently focused element.</summary>
+    ElementInfo GetFocusedElement();
+
+    /// <summary>Sets focus to an element.</summary>
+    void SetFocus(string elementId);
+
+    /// <summary>Sends keyboard input to the element after setting focus. Uses Win32 SendInput.</summary>
+    void SendKeys(string elementId, string keys);
 }

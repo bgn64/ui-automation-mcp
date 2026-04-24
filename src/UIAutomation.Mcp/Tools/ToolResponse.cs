@@ -31,7 +31,8 @@ internal static class ToolResponse
     /// (bad input from the caller) rather than an unexpected failure.
     /// </summary>
     public static bool IsValidationError(Exception ex) =>
-        ex is KeyNotFoundException       // bad elementId
-        || ex is InvalidOperationException // unsupported pattern
-        || ex is ArgumentException;        // bad parameter value
+        ex is KeyNotFoundException              // bad elementId
+        || ex is InvalidOperationException      // unsupported pattern
+        || ex is ArgumentException              // bad parameter value
+        || ex is System.Windows.Automation.ElementNotAvailableException;  // stale element
 }

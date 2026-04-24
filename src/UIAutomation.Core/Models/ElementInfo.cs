@@ -18,6 +18,13 @@ public sealed class ElementInfo
     public bool IsOffscreen { get; init; }
     public int ProcessId { get; init; }
     public string[] SupportedPatterns { get; init; } = [];
+    public bool HasKeyboardFocus { get; init; }
+    public bool IsKeyboardFocusable { get; init; }
+    public string? HelpText { get; init; }
+    public string? AcceleratorKey { get; init; }
+    public string? AccessKey { get; init; }
+    public int? NativeWindowHandle { get; init; }
+    public string? FrameworkId { get; init; }
     public List<ElementInfo>? Children { get; set; }
 
     public override string ToString() =>

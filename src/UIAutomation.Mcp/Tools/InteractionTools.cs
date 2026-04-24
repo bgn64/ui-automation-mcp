@@ -130,4 +130,192 @@ public sealed class InteractionTools
             return ToolResponse.UnexpectedError(_logger, ex, nameof(ClickAtPoint));
         }
     }
+
+    [McpServerTool(Name = "expand_element"), Description(
+        "Expands a UI element such as a combo box, tree node, or menu item. " +
+        "The element must support the ExpandCollapse pattern. Returns the new expand/collapse state.")]
+    public string ExpandElement(
+        [Description("The elementId of the element to expand")]
+        string elementId)
+    {
+        try
+        {
+            var newState = _service.ExpandElement(elementId);
+            return ToolResponse.Success(new { newState });
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(ExpandElement));
+        }
+    }
+
+    [McpServerTool(Name = "collapse_element"), Description(
+        "Collapses a UI element such as a combo box, tree node, or menu item. " +
+        "The element must support the ExpandCollapse pattern. Returns the new expand/collapse state.")]
+    public string CollapseElement(
+        [Description("The elementId of the element to collapse")]
+        string elementId)
+    {
+        try
+        {
+            var newState = _service.CollapseElement(elementId);
+            return ToolResponse.Success(new { newState });
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(CollapseElement));
+        }
+    }
+
+    [McpServerTool(Name = "select_element"), Description(
+        "Selects a UI element such as a list item, tab item, or radio button. " +
+        "The element must support the SelectionItem pattern. " +
+        "This performs an exclusive selection (deselects other items in single-select containers).")]
+    public string SelectElement(
+        [Description("The elementId of the element to select")]
+        string elementId)
+    {
+        try
+        {
+            _service.SelectElement(elementId);
+            return ToolResponse.Success(new { message = $"Selected element '{elementId}'." });
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(SelectElement));
+        }
+    }
+
+    [McpServerTool(Name = "deselect_element"), Description(
+        "Deselects a UI element, removing it from the current selection. " +
+        "The element must support the SelectionItem pattern. " +
+        "May fail if the container requires a selection or does not support multi-select.")]
+    public string DeselectElement(
+        [Description("The elementId of the element to deselect")]
+        string elementId)
+    {
+        try
+        {
+            _service.DeselectElement(elementId);
+            return ToolResponse.Success(new { message = $"Deselected element '{elementId}'." });
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(DeselectElement));
+        }
+    }
+
+    [McpServerTool(Name = "get_selection"), Description(
+        "Gets the current selection state of a container element such as a list, combo box, or tab control. " +
+        "The container must support the Selection pattern. " +
+        "Returns the selected items, whether multi-select is allowed, and whether a selection is required.")]
+    public string GetSelection(
+        [Description("The elementId of the container element to query")]
+        string elementId)
+    {
+        try
+        {
+            var info = _service.GetSelection(elementId);
+            return ToolResponse.Success(info);
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(GetSelection));
+        }
+    }
+
+    [McpServerTool(Name = "get_focused_element"), Description(
+        "Gets the UI element that currently has keyboard focus. " +
+        "Returns the element's properties and an elementId for use with other tools.")]
+    public string GetFocusedElement()
+    {
+        try
+        {
+            var info = _service.GetFocusedElement();
+            return ToolResponse.Success(info);
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(GetFocusedElement));
+        }
+    }
+
+    [McpServerTool(Name = "set_focus"), Description(
+        "Sets keyboard focus to a UI element. Use this before send_keys to ensure " +
+        "keystrokes go to the correct element.")]
+    public string SetFocus(
+        [Description("The elementId of the element to focus")]
+        string elementId)
+    {
+        try
+        {
+            _service.SetFocus(elementId);
+            return ToolResponse.Success(new { message = $"Set focus to element '{elementId}'." });
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(SetFocus));
+        }
+    }
+
+    [McpServerTool(Name = "send_keys"), Description(
+        "Sends keyboard input to a UI element. Sets focus to the element first, " +
+        "then sends the specified keystrokes.\n\n" +
+        "Format:\n" +
+        "- Plain text is typed as-is: \"Hello World\"\n" +
+        "- Special keys use braces: {Enter}, {Tab}, {Escape}, {Backspace}, {Delete}, {Space}\n" +
+        "- Arrow keys: {Up}, {Down}, {Left}, {Right}\n" +
+        "- Navigation: {Home}, {End}, {PageUp}, {PageDown}\n" +
+        "- Function keys: {F1} through {F12}\n" +
+        "- Modifier combos: {Ctrl+A}, {Ctrl+C}, {Ctrl+V}, {Alt+F4}, {Ctrl+Shift+S}\n" +
+        "- Literal braces: {{ for '{' and }} for '}'\n\n" +
+        "Examples: \"Hello{Enter}\", \"{Ctrl+A}{Delete}\", \"{Tab}{Tab}value{Enter}\"")]
+    public string SendKeys(
+        [Description("The elementId of the element to send keys to (will receive focus first)")]
+        string elementId,
+        [Description("The keys to send, using the format described above")]
+        string keys)
+    {
+        try
+        {
+            _service.SendKeys(elementId, keys);
+            return ToolResponse.Success(new { message = $"Sent keys to element '{elementId}'." });
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(SendKeys));
+        }
+    }
 }

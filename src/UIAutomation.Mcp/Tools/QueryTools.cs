@@ -85,7 +85,9 @@ public sealed class QueryTools
             "Comma-separated list of element properties to include in each result. " +
             "Reduces output size by omitting unnecessary fields. " +
             "Available: elementId, name, automationId, controlType, className, localizedControlType, " +
-            "boundingRectangle, isEnabled, isOffscreen, processId, supportedPatterns. " +
+            "boundingRectangle, isEnabled, isOffscreen, processId, supportedPatterns, " +
+            "hasKeyboardFocus, isKeyboardFocusable, helpText, acceleratorKey, accessKey, " +
+            "nativeWindowHandle, frameworkId. " +
             "Note: elementId is always included. When flatten is false, children is always included. " +
             "Omit to return all properties.")]
         string? properties = null)
@@ -198,6 +200,27 @@ public sealed class QueryTools
                     break;
                 case "supportedpatterns":
                     dict["supportedPatterns"] = element.SupportedPatterns;
+                    break;
+                case "haskeyboardfocus":
+                    dict["hasKeyboardFocus"] = element.HasKeyboardFocus;
+                    break;
+                case "iskeyboardfocusable":
+                    dict["isKeyboardFocusable"] = element.IsKeyboardFocusable;
+                    break;
+                case "helptext":
+                    dict["helpText"] = element.HelpText;
+                    break;
+                case "acceleratorkey":
+                    dict["acceleratorKey"] = element.AcceleratorKey;
+                    break;
+                case "accesskey":
+                    dict["accessKey"] = element.AccessKey;
+                    break;
+                case "nativewindowhandle":
+                    dict["nativeWindowHandle"] = element.NativeWindowHandle;
+                    break;
+                case "frameworkid":
+                    dict["frameworkId"] = element.FrameworkId;
                     break;
             }
         }
