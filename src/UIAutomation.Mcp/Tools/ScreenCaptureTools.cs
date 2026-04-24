@@ -39,11 +39,7 @@ public sealed class ScreenCaptureTools
             {
                 Content =
                 [
-                    new ImageContentBlock
-                    {
-                        Data = pngBytes,
-                        MimeType = "image/png",
-                    }
+                    ImageContentBlock.FromBytes(pngBytes, "image/png")
                 ]
             };
         }
