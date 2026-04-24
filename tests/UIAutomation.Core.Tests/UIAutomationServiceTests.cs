@@ -267,4 +267,163 @@ public class UIAutomationServiceTests
         Assert.Throws<KeyNotFoundException>(() =>
             _service.SendKeys("e-does-not-exist", "test"));
     }
+
+    // --- RangeValue tests ---
+
+    [Fact]
+    public void GetRangeValue_Throws_WhenNoRangeValuePattern()
+    {
+        var windows = _service.ListWindows();
+        Assert.NotEmpty(windows);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            _service.GetRangeValue(windows[0].ElementId));
+    }
+
+    [Fact]
+    public void SetRangeValue_Throws_WhenNoRangeValuePattern()
+    {
+        var windows = _service.ListWindows();
+        Assert.NotEmpty(windows);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            _service.SetRangeValue(windows[0].ElementId, 50.0));
+    }
+
+    [Fact]
+    public void GetRangeValue_Throws_ForUnknownElementId()
+    {
+        Assert.Throws<KeyNotFoundException>(() =>
+            _service.GetRangeValue("e-does-not-exist"));
+    }
+
+    // --- TextPattern tests ---
+
+    [Fact]
+    public void GetText_Throws_WhenNoTextPattern()
+    {
+        var windows = _service.ListWindows();
+        Assert.NotEmpty(windows);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            _service.GetText(windows[0].ElementId));
+    }
+
+    [Fact]
+    public void GetText_Throws_ForUnknownElementId()
+    {
+        Assert.Throws<KeyNotFoundException>(() =>
+            _service.GetText("e-does-not-exist"));
+    }
+
+    // --- GridPattern tests ---
+
+    [Fact]
+    public void GetGridItem_Throws_WhenNoGridPattern()
+    {
+        var windows = _service.ListWindows();
+        Assert.NotEmpty(windows);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            _service.GetGridItem(windows[0].ElementId, 0, 0));
+    }
+
+    [Fact]
+    public void GetGridItem_Throws_ForUnknownElementId()
+    {
+        Assert.Throws<KeyNotFoundException>(() =>
+            _service.GetGridItem("e-does-not-exist", 0, 0));
+    }
+
+    // --- TablePattern tests ---
+
+    [Fact]
+    public void GetTableHeaders_Throws_WhenNoTablePattern()
+    {
+        var windows = _service.ListWindows();
+        Assert.NotEmpty(windows);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            _service.GetTableHeaders(windows[0].ElementId));
+    }
+
+    [Fact]
+    public void GetTableHeaders_Throws_ForUnknownElementId()
+    {
+        Assert.Throws<KeyNotFoundException>(() =>
+            _service.GetTableHeaders("e-does-not-exist"));
+    }
+
+    // --- TransformPattern tests ---
+
+    [Fact]
+    public void MoveElement_Throws_ForUnsupportedElement()
+    {
+        var windows = _service.ListWindows();
+        Assert.NotEmpty(windows);
+
+        // Windows may or may not support TransformPattern;
+        // if they do, CanMove may be false — either way we expect an error.
+        Assert.ThrowsAny<InvalidOperationException>(() =>
+            _service.MoveElement(windows[0].ElementId, 100, 100));
+    }
+
+    [Fact]
+    public void ResizeElement_Throws_ForUnsupportedElement()
+    {
+        var windows = _service.ListWindows();
+        Assert.NotEmpty(windows);
+
+        Assert.ThrowsAny<InvalidOperationException>(() =>
+            _service.ResizeElement(windows[0].ElementId, 800, 600));
+    }
+
+    [Fact]
+    public void MoveElement_Throws_ForUnknownElementId()
+    {
+        Assert.Throws<KeyNotFoundException>(() =>
+            _service.MoveElement("e-does-not-exist", 100, 100));
+    }
+
+    [Fact]
+    public void ResizeElement_Throws_ForUnknownElementId()
+    {
+        Assert.Throws<KeyNotFoundException>(() =>
+            _service.ResizeElement("e-does-not-exist", 800, 600));
+    }
+
+    // --- GetParent tests ---
+
+    [Fact]
+    public void GetParent_ReturnsNull_ForTopLevelWindow()
+    {
+        var windows = _service.ListWindows();
+        Assert.NotEmpty(windows);
+
+        // Top-level windows have the desktop root as parent, which returns null
+        var parent = _service.GetParent(windows[0].ElementId);
+        Assert.Null(parent);
+    }
+
+    [Fact]
+    public void GetParent_ReturnsParent_ForChildElement()
+    {
+        var windows = _service.ListWindows();
+        Assert.NotEmpty(windows);
+
+        var tree = _service.GetElementTree(windows[0].ElementId, maxDepth: 1);
+        if (tree.Count > 0)
+        {
+            var parent = _service.GetParent(tree[0].ElementId);
+            Assert.NotNull(parent);
+            Assert.Equal("Window", parent.ControlType);
+        }
+    }
+
+    [Fact]
+    public void GetParent_Throws_ForUnknownElementId()
+    {
+        Assert.Throws<KeyNotFoundException>(() =>
+            _service.GetParent("e-does-not-exist"));
+    }
 }

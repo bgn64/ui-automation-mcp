@@ -95,4 +95,80 @@ public sealed class ElementTools
             return ToolResponse.UnexpectedError(_logger, ex, nameof(GetElementInfo));
         }
     }
+
+    [McpServerTool(Name = "get_grid_item"), Description(
+        "Gets the UI element at a specific row and column in a grid or table. " +
+        "The container must support the Grid pattern. Also returns the grid's total row and column counts. " +
+        "Row and column indices are zero-based.")]
+    public string GetGridItem(
+        [Description("The elementId of the grid/table container element")]
+        string elementId,
+        [Description("Zero-based row index")]
+        int row,
+        [Description("Zero-based column index")]
+        int column)
+    {
+        try
+        {
+            var info = _service.GetGridItem(elementId, row, column);
+            return ToolResponse.Success(info);
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(GetGridItem));
+        }
+    }
+
+    [McpServerTool(Name = "get_table_headers"), Description(
+        "Gets the row and column headers of a table element. " +
+        "The element must support the Table pattern. " +
+        "Returns lists of header elements and whether the table is row-major or column-major.")]
+    public string GetTableHeaders(
+        [Description("The elementId of the table element")]
+        string elementId)
+    {
+        try
+        {
+            var info = _service.GetTableHeaders(elementId);
+            return ToolResponse.Success(info);
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(GetTableHeaders));
+        }
+    }
+
+    [McpServerTool(Name = "get_parent"), Description(
+        "Gets the parent element of a UI element in the control view tree. " +
+        "Returns null if the element is at the top of the tree (direct child of the desktop root). " +
+        "Useful for navigating up the UI hierarchy.")]
+    public string GetParent(
+        [Description("The elementId of the element whose parent to retrieve")]
+        string elementId)
+    {
+        try
+        {
+            var parent = _service.GetParent(elementId);
+            if (parent == null)
+                return ToolResponse.Success(new { message = "Element is at the top of the control view tree (parent is the desktop root).", parent = (object?)null });
+
+            return ToolResponse.Success(parent);
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(GetParent));
+        }
+    }
 }

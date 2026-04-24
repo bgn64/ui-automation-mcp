@@ -318,4 +318,129 @@ public sealed class InteractionTools
             return ToolResponse.UnexpectedError(_logger, ex, nameof(SendKeys));
         }
     }
+
+    [McpServerTool(Name = "get_range_value"), Description(
+        "Gets the range value properties of a UI element such as a slider, spinner, or progress bar. " +
+        "Returns current value, minimum, maximum, and step sizes. " +
+        "The element must support the RangeValue pattern.")]
+    public string GetRangeValue(
+        [Description("The elementId of the element to read the range value from")]
+        string elementId)
+    {
+        try
+        {
+            var info = _service.GetRangeValue(elementId);
+            return ToolResponse.Success(info);
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(GetRangeValue));
+        }
+    }
+
+    [McpServerTool(Name = "set_range_value"), Description(
+        "Sets the numeric value of a UI element such as a slider or spinner. " +
+        "The element must support the RangeValue pattern and not be read-only. " +
+        "Returns the updated range value properties.")]
+    public string SetRangeValue(
+        [Description("The elementId of the element to set the range value on")]
+        string elementId,
+        [Description("The numeric value to set (must be within the element's Minimum and Maximum range)")]
+        double value)
+    {
+        try
+        {
+            var info = _service.SetRangeValue(elementId, value);
+            return ToolResponse.Success(info);
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(SetRangeValue));
+        }
+    }
+
+    [McpServerTool(Name = "get_text"), Description(
+        "Gets the text content of a UI element using the Text pattern. " +
+        "Works with rich text editors, document views, and other controls that support TextPattern. " +
+        "For simple text boxes, prefer get_value instead.")]
+    public string GetText(
+        [Description("The elementId of the element to read text from")]
+        string elementId,
+        [Description("Maximum number of characters to return. Use -1 for all text (default).")]
+        int maxLength = -1)
+    {
+        try
+        {
+            var text = _service.GetText(elementId, maxLength);
+            return ToolResponse.Success(new { text });
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(GetText));
+        }
+    }
+
+    [McpServerTool(Name = "move_element"), Description(
+        "Moves a UI element to a new screen position. The element must support the Transform pattern " +
+        "and allow moving (CanMove must be true). Typically used for windows and floating panels.")]
+    public string MoveElement(
+        [Description("The elementId of the element to move")]
+        string elementId,
+        [Description("The new X coordinate (screen pixels)")]
+        double x,
+        [Description("The new Y coordinate (screen pixels)")]
+        double y)
+    {
+        try
+        {
+            _service.MoveElement(elementId, x, y);
+            return ToolResponse.Success(new { message = $"Moved element '{elementId}' to ({x}, {y})." });
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(MoveElement));
+        }
+    }
+
+    [McpServerTool(Name = "resize_element"), Description(
+        "Resizes a UI element to the specified dimensions. The element must support the Transform pattern " +
+        "and allow resizing (CanResize must be true). Typically used for windows and resizable panels.")]
+    public string ResizeElement(
+        [Description("The elementId of the element to resize")]
+        string elementId,
+        [Description("The new width in pixels")]
+        double width,
+        [Description("The new height in pixels")]
+        double height)
+    {
+        try
+        {
+            _service.ResizeElement(elementId, width, height);
+            return ToolResponse.Success(new { message = $"Resized element '{elementId}' to ({width} x {height})." });
+        }
+        catch (Exception ex) when (ToolResponse.IsValidationError(ex))
+        {
+            return ToolResponse.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ToolResponse.UnexpectedError(_logger, ex, nameof(ResizeElement));
+        }
+    }
 }

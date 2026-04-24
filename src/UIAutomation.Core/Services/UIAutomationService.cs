@@ -499,6 +499,177 @@ public sealed class UIAutomationService : IUIAutomationService
         }
     });
 
+    public RangeValueInfo GetRangeValue(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(RangeValuePattern.Pattern, out var pattern))
+        {
+            var rv = (RangeValuePattern)pattern;
+            return new RangeValueInfo
+            {
+                Value = rv.Current.Value,
+                Minimum = rv.Current.Minimum,
+                Maximum = rv.Current.Maximum,
+                SmallChange = rv.Current.SmallChange,
+                LargeChange = rv.Current.LargeChange,
+                IsReadOnly = rv.Current.IsReadOnly,
+            };
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support RangeValuePattern.");
+    });
+
+    public RangeValueInfo SetRangeValue(string elementId, double value) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(RangeValuePattern.Pattern, out var pattern))
+        {
+            var rv = (RangeValuePattern)pattern;
+
+            if (rv.Current.IsReadOnly)
+            {
+                throw new InvalidOperationException(
+                    $"Element '{elementId}' (Name=\"{element.Current.Name}\") has a read-only RangeValuePattern.");
+            }
+
+            rv.SetValue(value);
+            return new RangeValueInfo
+            {
+                Value = rv.Current.Value,
+                Minimum = rv.Current.Minimum,
+                Maximum = rv.Current.Maximum,
+                SmallChange = rv.Current.SmallChange,
+                LargeChange = rv.Current.LargeChange,
+                IsReadOnly = rv.Current.IsReadOnly,
+            };
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support RangeValuePattern.");
+    });
+
+    public string GetText(string elementId, int maxLength = -1) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern))
+        {
+            var textPattern = (TextPattern)pattern;
+            return textPattern.DocumentRange.GetText(maxLength);
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support TextPattern.");
+    });
+
+    public GridInfo GetGridItem(string elementId, int row, int column) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(GridPattern.Pattern, out var pattern))
+        {
+            var grid = (GridPattern)pattern;
+            var item = grid.GetItem(row, column);
+            return new GridInfo
+            {
+                Item = ToElementInfo(item),
+                RowCount = grid.Current.RowCount,
+                ColumnCount = grid.Current.ColumnCount,
+            };
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support GridPattern.");
+    });
+
+    public TableHeaderInfo GetTableHeaders(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (element.TryGetCurrentPattern(TablePattern.Pattern, out var pattern))
+        {
+            var table = (TablePattern)pattern;
+            var rowHeaders = new List<ElementInfo>();
+            var columnHeaders = new List<ElementInfo>();
+
+            foreach (AutomationElement header in table.Current.GetRowHeaders())
+            {
+                try { rowHeaders.Add(ToElementInfo(header)); }
+                catch (ElementNotAvailableException) { }
+            }
+
+            foreach (AutomationElement header in table.Current.GetColumnHeaders())
+            {
+                try { columnHeaders.Add(ToElementInfo(header)); }
+                catch (ElementNotAvailableException) { }
+            }
+
+            return new TableHeaderInfo
+            {
+                RowHeaders = rowHeaders,
+                ColumnHeaders = columnHeaders,
+                RowOrColumnMajor = table.Current.RowOrColumnMajor.ToString(),
+            };
+        }
+
+        throw new InvalidOperationException(
+            $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support TablePattern.");
+    });
+
+    public void MoveElement(string elementId, double x, double y) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (!element.TryGetCurrentPattern(TransformPattern.Pattern, out var pattern))
+        {
+            throw new InvalidOperationException(
+                $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support TransformPattern.");
+        }
+
+        var transform = (TransformPattern)pattern;
+        if (!transform.Current.CanMove)
+        {
+            throw new InvalidOperationException(
+                $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support moving (CanMove is false).");
+        }
+
+        transform.Move(x, y);
+    });
+
+    public void ResizeElement(string elementId, double width, double height) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+
+        if (!element.TryGetCurrentPattern(TransformPattern.Pattern, out var pattern))
+        {
+            throw new InvalidOperationException(
+                $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support TransformPattern.");
+        }
+
+        var transform = (TransformPattern)pattern;
+        if (!transform.Current.CanResize)
+        {
+            throw new InvalidOperationException(
+                $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support resizing (CanResize is false).");
+        }
+
+        transform.Resize(width, height);
+    });
+
+    public ElementInfo? GetParent(string elementId) => RunOnSta(() =>
+    {
+        var element = GetCachedElement(elementId);
+        var parent = TreeWalker.ControlViewWalker.GetParent(element);
+
+        if (parent == null || parent == AutomationElement.RootElement)
+            return null;
+
+        return ToElementInfo(parent);
+    });
+
     public ElementQueryResult QueryElements(string rootElementId, ElementQueryOptions? options = null) => RunOnSta(() =>
     {
         var root = GetCachedElement(rootElementId);

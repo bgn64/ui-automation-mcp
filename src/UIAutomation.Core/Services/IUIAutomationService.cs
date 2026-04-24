@@ -86,4 +86,28 @@ public interface IUIAutomationService
 
     /// <summary>Sends keyboard input to the element after setting focus. Uses Win32 SendInput.</summary>
     void SendKeys(string elementId, string keys);
+
+    /// <summary>Gets range value information using RangeValuePattern.</summary>
+    RangeValueInfo GetRangeValue(string elementId);
+
+    /// <summary>Sets the value of a range element using RangeValuePattern. Returns updated info.</summary>
+    RangeValueInfo SetRangeValue(string elementId, double value);
+
+    /// <summary>Gets text content from an element using TextPattern.</summary>
+    string GetText(string elementId, int maxLength = -1);
+
+    /// <summary>Gets the element at a specific row and column in a grid using GridPattern.</summary>
+    GridInfo GetGridItem(string elementId, int row, int column);
+
+    /// <summary>Gets table header information using TablePattern.</summary>
+    TableHeaderInfo GetTableHeaders(string elementId);
+
+    /// <summary>Moves an element to a new position using TransformPattern.</summary>
+    void MoveElement(string elementId, double x, double y);
+
+    /// <summary>Resizes an element using TransformPattern.</summary>
+    void ResizeElement(string elementId, double width, double height);
+
+    /// <summary>Gets the parent element using TreeWalker.</summary>
+    ElementInfo? GetParent(string elementId);
 }
