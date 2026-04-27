@@ -27,7 +27,7 @@ public class QueryElementsTests
         return windows[0].ElementId;
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void QueryElements_FlatNoFilter_ReturnsElements()
     {
         var windowId = GetFirstWindowId();
@@ -51,7 +51,7 @@ public class QueryElementsTests
         }
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void QueryElements_TreeNoFilter_ReturnsTreeStructure()
     {
         var windowId = GetFirstWindowId();
@@ -66,7 +66,7 @@ public class QueryElementsTests
         Assert.NotEmpty(result.Elements);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void QueryElements_FilterByControlType_OnlyReturnsMatching()
     {
         var windowId = GetFirstWindowId();
@@ -85,7 +85,7 @@ public class QueryElementsTests
         }
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void QueryElements_FilterByEnabledState_OnlyReturnsEnabled()
     {
         var windowId = GetFirstWindowId();
@@ -104,7 +104,7 @@ public class QueryElementsTests
         }
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void QueryElements_MaxResults_TruncatesOutput()
     {
         var windowId = GetFirstWindowId();
@@ -125,7 +125,7 @@ public class QueryElementsTests
         }
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void QueryElements_MaxDepth1_OnlyDirectChildren()
     {
         var windowId = GetFirstWindowId();
@@ -146,7 +146,7 @@ public class QueryElementsTests
         Assert.True(resultDepth3.ScannedCount >= resultDepth1.ScannedCount);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void QueryElements_NullOptions_UsesDefaults()
     {
         var windowId = GetFirstWindowId();
@@ -162,7 +162,7 @@ public class QueryElementsTests
         }
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void QueryElements_OnlyCachesMatchedElements()
     {
         // Use a fresh cache to verify caching behavior
@@ -186,14 +186,14 @@ public class QueryElementsTests
         Assert.Equal(result.Elements.Count, newlyCached);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void QueryElements_ThrowsForUnknownRootId()
     {
         Assert.Throws<KeyNotFoundException>(() =>
             _service.QueryElements("e-nonexistent"));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void QueryElements_FilterByOffscreen_Works()
     {
         var windowId = GetFirstWindowId();
@@ -212,7 +212,7 @@ public class QueryElementsTests
         }
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void QueryElements_EmptyFilter_MatchesAll()
     {
         var windowId = GetFirstWindowId();

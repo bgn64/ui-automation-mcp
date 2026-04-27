@@ -5,7 +5,7 @@ namespace UIAutomation.Core.Tests;
 
 /// <summary>
 /// Integration tests for UIAutomationService. The service handles STA threading internally,
-/// so these tests use plain [Fact] (no [StaFact] needed).
+/// so these tests use plain [RequiresInteractiveDesktopFact] (no [StaFact] needed).
 /// </summary>
 [Trait("Category", "Integration")]
 public class UIAutomationServiceTests
@@ -19,14 +19,14 @@ public class UIAutomationServiceTests
         _service = new UIAutomationService(_cache);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void ListWindows_ReturnsNonEmptyList()
     {
         var windows = _service.ListWindows();
         Assert.NotEmpty(windows);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void ListWindows_AllEntriesHaveWindowControlType()
     {
         var windows = _service.ListWindows();
@@ -38,7 +38,7 @@ public class UIAutomationServiceTests
         }
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void ListWindows_CachesElements()
     {
         var windows = _service.ListWindows();
@@ -50,7 +50,7 @@ public class UIAutomationServiceTests
         }
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void ListWindows_IncludesNewProperties()
     {
         var windows = _service.ListWindows();
@@ -63,14 +63,14 @@ public class UIAutomationServiceTests
         // FrameworkId is typically non-null for windows
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetElementInfo_ReturnsNull_ForUnknownId()
     {
         var info = _service.GetElementInfo("e-does-not-exist");
         Assert.Null(info);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetElementInfo_ReturnsInfo_ForCachedElement()
     {
         var windows = _service.ListWindows();
@@ -81,7 +81,7 @@ public class UIAutomationServiceTests
         Assert.Equal("Window", info.ControlType);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetElementTree_ReturnsChildren_ForWindow()
     {
         var windows = _service.ListWindows();
@@ -91,14 +91,14 @@ public class UIAutomationServiceTests
         Assert.NotNull(tree);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void FindElements_ThrowsForUnknownParent()
     {
         Assert.Throws<KeyNotFoundException>(() =>
             _service.FindElements("e-nonexistent", name: "anything"));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetValue_FallsBackToName_WhenNoValuePattern()
     {
         var windows = _service.ListWindows();
@@ -108,7 +108,7 @@ public class UIAutomationServiceTests
         Assert.NotNull(value);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void InvokeElement_Throws_WhenElementDoesNotSupportInvoke()
     {
         var windows = _service.ListWindows();
@@ -118,7 +118,7 @@ public class UIAutomationServiceTests
             _service.InvokeElement(windows[0].ElementId));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void ClickAtPoint_Throws_ForUnknownElementId()
     {
         Assert.Throws<KeyNotFoundException>(() =>
@@ -127,7 +127,7 @@ public class UIAutomationServiceTests
 
     // --- ExpandCollapse tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void ExpandElement_Throws_WhenNoExpandCollapsePattern()
     {
         var windows = _service.ListWindows();
@@ -138,7 +138,7 @@ public class UIAutomationServiceTests
             _service.ExpandElement(windows[0].ElementId));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void CollapseElement_Throws_WhenNoExpandCollapsePattern()
     {
         var windows = _service.ListWindows();
@@ -150,7 +150,7 @@ public class UIAutomationServiceTests
 
     // --- Selection tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void SelectElement_Throws_WhenNoSelectionItemPattern()
     {
         var windows = _service.ListWindows();
@@ -160,7 +160,7 @@ public class UIAutomationServiceTests
             _service.SelectElement(windows[0].ElementId));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void DeselectElement_Throws_WhenNoSelectionItemPattern()
     {
         var windows = _service.ListWindows();
@@ -170,7 +170,7 @@ public class UIAutomationServiceTests
             _service.DeselectElement(windows[0].ElementId));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetSelection_Throws_WhenNoSelectionPattern()
     {
         var windows = _service.ListWindows();
@@ -182,7 +182,7 @@ public class UIAutomationServiceTests
 
     // --- Window management tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetWindowInfo_ReturnsInfo_ForWindow()
     {
         var windows = _service.ListWindows();
@@ -194,7 +194,7 @@ public class UIAutomationServiceTests
         Assert.NotEmpty(info.WindowInteractionState);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void SetWindowVisualState_ThrowsForInvalidState()
     {
         var windows = _service.ListWindows();
@@ -206,7 +206,7 @@ public class UIAutomationServiceTests
 
     // --- Scroll tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void ScrollIntoView_Throws_WhenNoScrollItemPattern()
     {
         var windows = _service.ListWindows();
@@ -218,7 +218,7 @@ public class UIAutomationServiceTests
             _service.ScrollIntoView(windows[0].ElementId));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void Scroll_Throws_WhenNoScrollPattern()
     {
         var windows = _service.ListWindows();
@@ -228,7 +228,7 @@ public class UIAutomationServiceTests
             _service.Scroll(windows[0].ElementId, null, "SmallIncrement"));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void Scroll_ThrowsForInvalidAmount()
     {
         var windows = _service.ListWindows();
@@ -244,7 +244,7 @@ public class UIAutomationServiceTests
 
     // --- Focus tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetFocusedElement_ReturnsNonNull()
     {
         var focused = _service.GetFocusedElement();
@@ -252,7 +252,7 @@ public class UIAutomationServiceTests
         Assert.NotEmpty(focused.ElementId);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void SetFocus_Throws_ForUnknownElementId()
     {
         Assert.Throws<KeyNotFoundException>(() =>
@@ -261,7 +261,7 @@ public class UIAutomationServiceTests
 
     // --- SendKeys tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void SendKeys_Throws_ForUnknownElementId()
     {
         Assert.Throws<KeyNotFoundException>(() =>
@@ -270,7 +270,7 @@ public class UIAutomationServiceTests
 
     // --- RangeValue tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetRangeValue_Throws_WhenNoRangeValuePattern()
     {
         var windows = _service.ListWindows();
@@ -280,7 +280,7 @@ public class UIAutomationServiceTests
             _service.GetRangeValue(windows[0].ElementId));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void SetRangeValue_Throws_WhenNoRangeValuePattern()
     {
         var windows = _service.ListWindows();
@@ -290,7 +290,7 @@ public class UIAutomationServiceTests
             _service.SetRangeValue(windows[0].ElementId, 50.0));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetRangeValue_Throws_ForUnknownElementId()
     {
         Assert.Throws<KeyNotFoundException>(() =>
@@ -299,7 +299,7 @@ public class UIAutomationServiceTests
 
     // --- TextPattern tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetText_Throws_WhenNoTextPattern()
     {
         var windows = _service.ListWindows();
@@ -309,7 +309,7 @@ public class UIAutomationServiceTests
             _service.GetText(windows[0].ElementId));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetText_Throws_ForUnknownElementId()
     {
         Assert.Throws<KeyNotFoundException>(() =>
@@ -318,7 +318,7 @@ public class UIAutomationServiceTests
 
     // --- GridPattern tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetGridItem_Throws_WhenNoGridPattern()
     {
         var windows = _service.ListWindows();
@@ -328,7 +328,7 @@ public class UIAutomationServiceTests
             _service.GetGridItem(windows[0].ElementId, 0, 0));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetGridItem_Throws_ForUnknownElementId()
     {
         Assert.Throws<KeyNotFoundException>(() =>
@@ -337,7 +337,7 @@ public class UIAutomationServiceTests
 
     // --- TablePattern tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetTableHeaders_Throws_WhenNoTablePattern()
     {
         var windows = _service.ListWindows();
@@ -347,7 +347,7 @@ public class UIAutomationServiceTests
             _service.GetTableHeaders(windows[0].ElementId));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetTableHeaders_Throws_ForUnknownElementId()
     {
         Assert.Throws<KeyNotFoundException>(() =>
@@ -356,7 +356,7 @@ public class UIAutomationServiceTests
 
     // --- TransformPattern tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void MoveElement_Throws_ForUnsupportedElement()
     {
         // The desktop root is guaranteed by UI Automation to not support TransformPattern,
@@ -368,7 +368,7 @@ public class UIAutomationServiceTests
         Assert.Contains("TransformPattern", ex.Message);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void ResizeElement_Throws_ForUnsupportedElement()
     {
         var rootId = _cache.GetOrAdd(System.Windows.Automation.AutomationElement.RootElement);
@@ -378,14 +378,14 @@ public class UIAutomationServiceTests
         Assert.Contains("TransformPattern", ex.Message);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void MoveElement_Throws_ForUnknownElementId()
     {
         Assert.Throws<KeyNotFoundException>(() =>
             _service.MoveElement("e-does-not-exist", 100, 100));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void ResizeElement_Throws_ForUnknownElementId()
     {
         Assert.Throws<KeyNotFoundException>(() =>
@@ -394,7 +394,7 @@ public class UIAutomationServiceTests
 
     // --- GetParent tests ---
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetParent_ReturnsNull_ForTopLevelWindow()
     {
         var windows = _service.ListWindows();
@@ -405,7 +405,7 @@ public class UIAutomationServiceTests
         Assert.Null(parent);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetParent_ReturnsParent_ForChildElement()
     {
         var windows = _service.ListWindows();
@@ -420,7 +420,7 @@ public class UIAutomationServiceTests
         }
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetParent_Throws_ForUnknownElementId()
     {
         Assert.Throws<KeyNotFoundException>(() =>
