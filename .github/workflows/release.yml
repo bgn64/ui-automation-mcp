@@ -9,7 +9,11 @@ permissions:
   pull-requests: write
 
 jobs:
+  build-test:
+    uses: ./.github/workflows/_build-test.yml
+
   publish:
+    needs: build-test
     runs-on: windows-latest
 
     steps:
@@ -33,12 +37,6 @@ jobs:
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "tag=$tag"          | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           Write-Host "Version: $version"
-
-      - name: Restore + build (sanity check)
-        run: dotnet build UIAutomation.slnx -c Release --nologo
-
-      - name: Run tests
-        run: dotnet test UIAutomation.slnx -c Release --nologo --no-build
 
       - name: Publish self-contained zip
         id: pub
