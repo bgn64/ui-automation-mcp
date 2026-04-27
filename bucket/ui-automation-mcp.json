@@ -6,7 +6,7 @@
   "architecture": {
     "64bit": {
       "url": "https://github.com/bgn64/ui-automation-mcp/releases/download/v0.1.0/ui-automation-mcp-0.1.0-win-x64.zip",
-      "hash": "28fbeef94773c91c9295e592f1b57feae6cf144e0b0236b148f6959b6b31f900"
+      "hash": "5a9f36d6e2dee04c41f3eaec280807bc70cf01375a313b885a576c96129a3a32"
     }
   },
   "bin": "ui-automation-mcp.exe",

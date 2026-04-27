@@ -60,14 +60,12 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ steps.ver.outputs.tag }}"
-          # Idempotent: if a release for this tag already exists (re-run), upload with --clobber.
+          # Release assets are immutable: if a release for this tag already
+          # exists (e.g. from a prior run), leave its assets in place so the
+          # hash recorded in the Scoop manifest stays valid.
           $existing = gh release view $tag --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) {
-            Write-Host "Release $tag already exists; uploading assets with --clobber."
-            gh release upload $tag `
-              "${{ steps.pub.outputs.zip }}" `
-              "${{ steps.pub.outputs.zip }}.sha256" `
-              --clobber
+            Write-Host "Release $tag already exists; leaving existing assets in place."
           } else {
             gh release create $tag `
               "${{ steps.pub.outputs.zip }}" `
