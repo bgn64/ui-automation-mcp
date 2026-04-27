@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "ui-automation-mcp": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "src/UIAutomation.Mcp/UIAutomation.Mcp.csproj",
+        "--no-launch-profile"
+      ],
+      "tools": ["*"]
+    }
+  }
+}
