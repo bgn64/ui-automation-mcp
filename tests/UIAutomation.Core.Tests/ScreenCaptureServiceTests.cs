@@ -13,14 +13,14 @@ public class ScreenCaptureServiceTests
 
     private readonly ScreenCaptureService _service = new();
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void CaptureScreen_ReturnsNonEmptyBytes()
     {
         byte[] result = _service.CaptureScreen();
         Assert.NotEmpty(result);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void CaptureScreen_ReturnedBytesHaveValidPngHeader()
     {
         byte[] result = _service.CaptureScreen();
@@ -28,14 +28,14 @@ public class ScreenCaptureServiceTests
         Assert.Equal(PngSignature, result[..PngSignature.Length]);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetMonitors_ReturnsAtLeastOneMonitor()
     {
         var monitors = _service.GetMonitors();
         Assert.NotEmpty(monitors);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetMonitors_AllMonitorsHavePositiveDimensions()
     {
         var monitors = _service.GetMonitors();
@@ -46,7 +46,7 @@ public class ScreenCaptureServiceTests
         }
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetMonitors_ExactlyOnePrimaryMonitor()
     {
         var monitors = _service.GetMonitors();
@@ -54,7 +54,7 @@ public class ScreenCaptureServiceTests
         Assert.Equal(1, primaryCount);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void GetMonitors_IndicesAreSequentialFromZero()
     {
         var monitors = _service.GetMonitors();
@@ -64,7 +64,7 @@ public class ScreenCaptureServiceTests
         }
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void CaptureMonitor_FirstMonitor_ReturnsValidPng()
     {
         byte[] result = _service.CaptureMonitor(0);
@@ -72,13 +72,13 @@ public class ScreenCaptureServiceTests
         Assert.Equal(PngSignature, result[..PngSignature.Length]);
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void CaptureMonitor_InvalidIndex_ThrowsArgumentOutOfRangeException()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => _service.CaptureMonitor(999));
     }
 
-    [Fact]
+    [RequiresInteractiveDesktopFact]
     public void CaptureMonitor_NegativeIndex_ThrowsArgumentOutOfRangeException()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => _service.CaptureMonitor(-1));
