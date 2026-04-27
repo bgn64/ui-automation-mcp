@@ -1,37 +1,37 @@
 {
-    "version": "0.0.0",
-    "description": "An MCP (Model Context Protocol) server that exposes Windows UI Automation as tools, letting AI agents find, inspect, and interact with desktop application UIs.",
-    "homepage": "https://github.com/bgn64/ui-automation-mcp",
-    "license": "MIT",
+  "version": "0.1.0",
+  "description": "An MCP (Model Context Protocol) server that exposes Windows UI Automation as tools, letting AI agents find, inspect, and interact with desktop application UIs.",
+  "homepage": "https://github.com/bgn64/ui-automation-mcp",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/bgn64/ui-automation-mcp/releases/download/v0.1.0/ui-automation-mcp-0.1.0-win-x64.zip",
+      "hash": "28fbeef94773c91c9295e592f1b57feae6cf144e0b0236b148f6959b6b31f900"
+    }
+  },
+  "bin": "ui-automation-mcp.exe",
+  "checkver": {
+    "github": "https://github.com/bgn64/ui-automation-mcp"
+  },
+  "autoupdate": {
     "architecture": {
-        "64bit": {
-            "url": "https://github.com/bgn64/ui-automation-mcp/releases/download/v0.0.0/ui-automation-mcp-0.0.0-win-x64.zip",
-            "hash": "0000000000000000000000000000000000000000000000000000000000000000"
-        }
+      "64bit": {
+        "url": "https://github.com/bgn64/ui-automation-mcp/releases/download/v$version/ui-automation-mcp-$version-win-x64.zip"
+      }
     },
-    "bin": "ui-automation-mcp.exe",
-    "checkver": {
-        "github": "https://github.com/bgn64/ui-automation-mcp"
-    },
-    "autoupdate": {
-        "architecture": {
-            "64bit": {
-                "url": "https://github.com/bgn64/ui-automation-mcp/releases/download/v$version/ui-automation-mcp-$version-win-x64.zip"
-            }
-        },
-        "hash": {
-            "url": "$url.sha256"
-        }
-    },
-    "notes": [
-        "After installing, add the following to your MCP client config:",
-        "{",
-        "  \"mcpServers\": {",
-        "    \"ui-automation\": {",
-        "      \"type\": \"stdio\",",
-        "      \"command\": \"ui-automation-mcp\"",
-        "    }",
-        "  }",
-        "}"
-    ]
+    "hash": {
+      "url": "$url.sha256"
+    }
+  },
+  "notes": [
+    "After installing, add the following to your MCP client config:",
+    "{",
+    "  \"mcpServers\": {",
+    "    \"ui-automation\": {",
+    "      \"type\": \"stdio\",",
+    "      \"command\": \"ui-automation-mcp\"",
+    "    }",
+    "  }",
+    "}"
+  ]
 }
