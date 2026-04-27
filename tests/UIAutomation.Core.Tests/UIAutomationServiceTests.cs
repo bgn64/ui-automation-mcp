@@ -359,23 +359,23 @@ public class UIAutomationServiceTests
     [Fact]
     public void MoveElement_Throws_ForUnsupportedElement()
     {
-        var windows = _service.ListWindows();
-        Assert.NotEmpty(windows);
+        // The desktop root is guaranteed by UI Automation to not support TransformPattern,
+        // making this test deterministic across machines (unlike picking an arbitrary top-level window).
+        var rootId = _cache.GetOrAdd(System.Windows.Automation.AutomationElement.RootElement);
 
-        // Windows may or may not support TransformPattern;
-        // if they do, CanMove may be false — either way we expect an error.
-        Assert.ThrowsAny<InvalidOperationException>(() =>
-            _service.MoveElement(windows[0].ElementId, 100, 100));
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            _service.MoveElement(rootId, 100, 100));
+        Assert.Contains("TransformPattern", ex.Message);
     }
 
     [Fact]
     public void ResizeElement_Throws_ForUnsupportedElement()
     {
-        var windows = _service.ListWindows();
-        Assert.NotEmpty(windows);
+        var rootId = _cache.GetOrAdd(System.Windows.Automation.AutomationElement.RootElement);
 
-        Assert.ThrowsAny<InvalidOperationException>(() =>
-            _service.ResizeElement(windows[0].ElementId, 800, 600));
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            _service.ResizeElement(rootId, 800, 600));
+        Assert.Contains("TransformPattern", ex.Message);
     }
 
     [Fact]
