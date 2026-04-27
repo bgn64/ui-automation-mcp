@@ -1,12 +1,12 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An MCP (Model Context Protocol) server that exposes Windows UI Automation as tools, letting AI agents find, inspect, and interact with desktop application UIs.",
   "homepage": "https://github.com/bgn64/ui-automation-mcp",
   "license": "MIT",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/bgn64/ui-automation-mcp/releases/download/v0.1.0/ui-automation-mcp-0.1.0-win-x64.zip",
-      "hash": "5a9f36d6e2dee04c41f3eaec280807bc70cf01375a313b885a576c96129a3a32"
+      "url": "https://github.com/bgn64/ui-automation-mcp/releases/download/v0.1.1/ui-automation-mcp-0.1.1-win-x64.zip",
+      "hash": "74636028b9271d19c91d936764c9c4249c0cc626a608e404c4494b242542c862"
     }
   },
   "bin": "ui-automation-mcp.exe",
