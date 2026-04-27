@@ -98,7 +98,7 @@ jobs:
           $json = $manifest | ConvertTo-Json -Depth 10
           Set-Content -Path $manifestPath -Value $json -Encoding utf8
 
-          Write-Host "Updated $manifestPath:"
+          Write-Host "Updated ${manifestPath}:"
           Get-Content $manifestPath
 
       - name: Open PR with manifest update
