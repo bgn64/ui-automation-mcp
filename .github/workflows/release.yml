@@ -1,0 +1,132 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout the tagged commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Compute version from tag
+        id: ver
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag -replace '^v',''
+          if (-not $version) { throw "Empty version derived from tag '$tag'" }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "tag=$tag"          | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Version: $version"
+
+      - name: Restore + build (sanity check)
+        run: dotnet build UIAutomation.slnx -c Release --nologo
+
+      - name: Run tests
+        run: dotnet test UIAutomation.slnx -c Release --nologo --no-build
+
+      - name: Publish self-contained zip
+        id: pub
+        shell: pwsh
+        run: ./publish.ps1 -Version "${{ steps.ver.outputs.version }}"
+
+      - name: Compute SHA-256 of zip
+        id: hash
+        shell: pwsh
+        run: |
+          $zip = "${{ steps.pub.outputs.zip }}"
+          $hash = (Get-FileHash -Path $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "hash=$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          # Sidecar .sha256 file so Scoop autoupdate's `$url.sha256` works.
+          "$hash *${{ steps.pub.outputs.zipName }}" | Out-File -FilePath "$zip.sha256" -Encoding ascii -NoNewline
+          Write-Host "SHA-256: $hash"
+
+      - name: Create GitHub Release with assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.ver.outputs.tag }}"
+          # Idempotent: if a release for this tag already exists (re-run), upload with --clobber.
+          $existing = gh release view $tag --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release $tag already exists; uploading assets with --clobber."
+            gh release upload $tag `
+              "${{ steps.pub.outputs.zip }}" `
+              "${{ steps.pub.outputs.zip }}.sha256" `
+              --clobber
+          } else {
+            gh release create $tag `
+              "${{ steps.pub.outputs.zip }}" `
+              "${{ steps.pub.outputs.zip }}.sha256" `
+              --title $tag `
+              --generate-notes
+          }
+
+      - name: Update Scoop manifest
+        shell: pwsh
+        run: |
+          # Switch to the latest main so the bucket commit lands cleanly even
+          # if main has moved past the tagged commit.
+          git fetch origin main
+          git checkout -B main origin/main
+
+          $manifestPath = "bucket/ui-automation-mcp.json"
+          $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
+          $version = "${{ steps.ver.outputs.version }}"
+          $tag     = "${{ steps.ver.outputs.tag }}"
+          $zipName = "${{ steps.pub.outputs.zipName }}"
+          $hash    = "${{ steps.hash.outputs.hash }}"
+
+          $manifest.version = $version
+          $manifest.architecture.'64bit'.url  = "https://github.com/bgn64/ui-automation-mcp/releases/download/$tag/$zipName"
+          $manifest.architecture.'64bit'.hash = $hash
+
+          $json = $manifest | ConvertTo-Json -Depth 10
+          Set-Content -Path $manifestPath -Value $json -Encoding utf8
+
+          Write-Host "Updated $manifestPath:"
+          Get-Content $manifestPath
+
+      - name: Open PR with manifest update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          $changes = git status --porcelain
+          if (-not $changes) {
+            Write-Host "No manifest changes to commit."
+            exit 0
+          }
+
+          $version = "${{ steps.ver.outputs.version }}"
+          $branch  = "scoop-manifest/$version"
+
+          git checkout -b $branch
+          git add bucket/ui-automation-mcp.json
+          git commit -m "Update Scoop manifest to $version"
+          git push --set-upstream origin $branch
+
+          gh pr create `
+            --base main `
+            --head $branch `
+            --title "Update Scoop manifest to $version" `
+            --body  "Automated update of ``bucket/ui-automation-mcp.json`` for release [``${{ steps.ver.outputs.tag }}``](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.ver.outputs.tag }}).`n`nMerge this PR to make the new version installable via ``scoop update ui-automation-mcp``."

@@ -23,17 +23,24 @@ Built with .NET 9 and the Windows UI Automation framework, it provides tools for
 
 ## Installation
 
-### 1. Unzip the release
+### Recommended: install with Scoop
 
-Download and extract the release `.zip` to a permanent folder on your machine, for example:
+[Scoop](https://scoop.sh/) is a command-line installer for Windows.
 
+```powershell
+scoop bucket add ui-automation-mcp https://github.com/bgn64/ui-automation-mcp
+scoop install ui-automation-mcp
 ```
-C:\tools\ui-automation-mcp\
+
+This installs a self-contained `ui-automation-mcp.exe` and adds it to your `PATH` — no .NET SDK or runtime is required.
+
+To upgrade later:
+
+```powershell
+scoop update ui-automation-mcp
 ```
 
-The zip is self-contained — no .NET SDK or runtime installation is required.
-
-### 2. Add the MCP server to your configuration
+### Add the MCP server to your configuration
 
 Add the following entry to your MCP client's JSON configuration file:
 
@@ -42,13 +49,11 @@ Add the following entry to your MCP client's JSON configuration file:
   "mcpServers": {
     "ui-automation": {
       "type": "stdio",
-      "command": "C:\\tools\\ui-automation-mcp\\ui-automation-mcp.exe"
+      "command": "ui-automation-mcp"
     }
   }
 }
 ```
-
-> **Adjust the path** to match wherever you extracted the zip.
 
 ### Where do I find my MCP configuration file?
 
@@ -64,11 +69,28 @@ The location depends on which MCP client you're using:
 
 If the file doesn't exist yet, create it with the JSON blob above. If it already exists, merge the `"ui-automation"` entry into the existing `"mcpServers"` object.
 
-### 3. Restart your MCP client
-
 After saving the config, restart your MCP client (or reload the window in VS Code). The server will be launched automatically when the client needs it.
 
-## Alternative: run from source
+## Alternative installation methods
+
+### Manual zip download
+
+If you'd rather not use Scoop, download the latest release zip from the [releases page](https://github.com/bgn64/ui-automation-mcp/releases) and extract it to a permanent folder, e.g. `C:\tools\ui-automation-mcp\`. Then point your MCP client at the absolute path:
+
+```json
+{
+  "mcpServers": {
+    "ui-automation": {
+      "type": "stdio",
+      "command": "C:\\tools\\ui-automation-mcp\\ui-automation-mcp.exe"
+    }
+  }
+}
+```
+
+The zip is self-contained — no .NET SDK or runtime installation is required.
+
+### Run from source
 
 If you have the [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) installed and prefer to run from source, clone the repo and point your MCP config at the project directly:
 
