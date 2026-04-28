@@ -45,10 +45,10 @@ internal static class MacNativeMethods
     internal const uint KCGNullWindowID = 0;
     internal const uint KCGWindowImageDefault = 0;
 
-    private static readonly Lazy<IntPtr> CoreFoundationHandle = new(() => NativeLibrary.Load(CoreFoundationLibrary));
+    private static readonly Lazy<IntPtr> s_coreFoundationHandle = new(() => NativeLibrary.Load(CoreFoundationLibrary));
 
-    internal static IntPtr KCFBooleanTrue => Marshal.ReadIntPtr(NativeLibrary.GetExport(CoreFoundationHandle.Value, "kCFBooleanTrue"));
-    internal static IntPtr KCFBooleanFalse => Marshal.ReadIntPtr(NativeLibrary.GetExport(CoreFoundationHandle.Value, "kCFBooleanFalse"));
+    internal static IntPtr KCFBooleanTrue => Marshal.ReadIntPtr(NativeLibrary.GetExport(s_coreFoundationHandle.Value, "kCFBooleanTrue"));
+    internal static IntPtr KCFBooleanFalse => Marshal.ReadIntPtr(NativeLibrary.GetExport(s_coreFoundationHandle.Value, "kCFBooleanFalse"));
     internal static IntPtr KAXTrustedCheckOptionPrompt => Marshal.ReadIntPtr(NativeLibrary.GetExport(
         NativeLibrary.Load(ApplicationServicesLibrary),
         "kAXTrustedCheckOptionPrompt"));

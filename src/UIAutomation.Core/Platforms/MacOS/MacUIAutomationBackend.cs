@@ -49,7 +49,7 @@ public sealed class MacUIAutomationBackend : IUIAutomationBackend
     private const string AXExpand = "AXExpand";
     private const string AXCollapse = "AXCollapse";
 
-    private static readonly object PhysicalInputLock = new();
+    private static readonly object s_physicalInputLock = new();
 
     private readonly MacElementCache _cache;
 
@@ -236,7 +236,7 @@ public sealed class MacUIAutomationBackend : IUIAutomationBackend
         var element = GetCachedElement(elementId);
         var point = GetClickablePoint(element);
 
-        lock (PhysicalInputLock)
+        lock (s_physicalInputLock)
         {
             PostMouseEvent(MacNativeMethods.KCGEventLeftMouseDown, point);
             PostMouseEvent(MacNativeMethods.KCGEventLeftMouseUp, point);
@@ -412,7 +412,7 @@ public sealed class MacUIAutomationBackend : IUIAutomationBackend
             throw new InvalidOperationException("Unable to create macOS scroll event.");
         }
 
-        lock (PhysicalInputLock)
+        lock (s_physicalInputLock)
         {
             try
             {
@@ -468,7 +468,7 @@ public sealed class MacUIAutomationBackend : IUIAutomationBackend
         EnsureAccessibilityTrusted();
         var element = GetCachedElement(elementId);
 
-        lock (PhysicalInputLock)
+        lock (s_physicalInputLock)
         {
             TryPerformAction(element, AXRaise);
             TrySetBooleanAttribute(element, AXFocused, true);

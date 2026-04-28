@@ -14,7 +14,7 @@ internal readonly record struct MacKeyInput(MacKeyInputKind Kind, ushort KeyCode
 /// </summary>
 internal static class MacKeyInputHelper
 {
-    private static readonly Dictionary<string, ushort> NamedKeys = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, ushort> s_namedKeys = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Enter"] = 36,
         ["Return"] = 36,
@@ -41,7 +41,7 @@ internal static class MacKeyInputHelper
         ["F9"] = 101, ["F10"] = 109, ["F11"] = 103, ["F12"] = 111,
     };
 
-    private static readonly Dictionary<string, ushort> Modifiers = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, ushort> s_modifiers = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Ctrl"] = 59,
         ["Control"] = 59,
@@ -53,7 +53,7 @@ internal static class MacKeyInputHelper
         ["Win"] = 55,
     };
 
-    private static readonly Dictionary<char, ushort> CharacterKeys = new()
+    private static readonly Dictionary<char, ushort> s_characterKeys = new()
     {
         ['A'] = 0, ['S'] = 1, ['D'] = 2, ['F'] = 3, ['H'] = 4, ['G'] = 5,
         ['Z'] = 6, ['X'] = 7, ['C'] = 8, ['V'] = 9, ['B'] = 11, ['Q'] = 12,
@@ -135,7 +135,7 @@ internal static class MacKeyInputHelper
         var parts = token.Split('+');
         if (parts.Length == 1)
         {
-            if (!NamedKeys.TryGetValue(token, out var keyCode))
+            if (!s_namedKeys.TryGetValue(token, out var keyCode))
             {
                 throw new ArgumentException($"Unknown key name '{token}'.");
             }
@@ -148,7 +148,7 @@ internal static class MacKeyInputHelper
         for (int i = 0; i < parts.Length - 1; i++)
         {
             var modifierName = parts[i].Trim();
-            if (!Modifiers.TryGetValue(modifierName, out var modifierCode))
+            if (!s_modifiers.TryGetValue(modifierName, out var modifierCode))
             {
                 throw new ArgumentException($"Unknown modifier '{modifierName}' in key combo '{token}'.");
             }
@@ -158,7 +158,7 @@ internal static class MacKeyInputHelper
 
         var keyName = parts[^1].Trim();
         ushort targetKeyCode;
-        if (NamedKeys.TryGetValue(keyName, out var namedKeyCode))
+        if (s_namedKeys.TryGetValue(keyName, out var namedKeyCode))
         {
             targetKeyCode = namedKeyCode;
         }
@@ -185,7 +185,7 @@ internal static class MacKeyInputHelper
     }
 
     private static bool TryGetCharacterKeyCode(char character, out ushort keyCode) =>
-        CharacterKeys.TryGetValue(char.ToUpperInvariant(character), out keyCode);
+        s_characterKeys.TryGetValue(char.ToUpperInvariant(character), out keyCode);
 
     private static void AddUnicodeChar(List<MacKeyInput> inputs, char character)
     {
