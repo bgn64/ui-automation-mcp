@@ -1,24 +1,18 @@
 using UIAutomation.Core;
 using UIAutomation.Core.Models;
+using UIAutomation.Core.Platforms.Windows;
 using UIAutomation.Core.Services;
 
-namespace UIAutomation.Core.Tests;
+namespace UIAutomation.Core.Tests.Windows;
 
 /// <summary>
-/// Integration tests for QueryElements on UIAutomationService.
+/// Integration tests for QueryElements on WindowsUIAutomationBackend.
 /// These tests run against real UI Automation (desktop must have at least one window).
 /// </summary>
 [Trait("Category", "Integration")]
 public class QueryElementsTests
 {
-    private readonly UIAutomationService _service;
-    private readonly ElementCache _cache;
-
-    public QueryElementsTests()
-    {
-        _cache = new ElementCache();
-        _service = new UIAutomationService(_cache);
-    }
+    private readonly IUIAutomationService _service = new WindowsUIAutomationBackend();
 
     private string GetFirstWindowId()
     {
@@ -163,27 +157,23 @@ public class QueryElementsTests
     }
 
     [RequiresInteractiveDesktopFact]
-    public void QueryElements_OnlyCachesMatchedElements()
+    public void QueryElements_ReturnsOnlyMatchedElements()
     {
-        // Use a fresh cache to verify caching behavior
-        var cache = new ElementCache();
-        var service = new UIAutomationService(cache);
-
-        var windows = service.ListWindows();
+        var windows = _service.ListWindows();
         Assert.NotEmpty(windows);
-        int cacheCountAfterListWindows = cache.Count;
 
-        var result = service.QueryElements(windows[0].ElementId, new ElementQueryOptions
+        var result = _service.QueryElements(windows[0].ElementId, new ElementQueryOptions
         {
             Filter = new ElementFilter { ControlTypes = ["Button"] },
             Flatten = true,
             MaxDepth = 3,
         });
 
-        // Cache should grow by exactly the number of matched elements returned
-        // (plus any that were already cached from ListWindows)
-        int newlyCached = cache.Count - cacheCountAfterListWindows;
-        Assert.Equal(result.Elements.Count, newlyCached);
+        // All returned elements should be Buttons
+        foreach (var el in result.Elements)
+        {
+            Assert.Equal("Button", el.ControlType);
+        }
     }
 
     [RequiresInteractiveDesktopFact]

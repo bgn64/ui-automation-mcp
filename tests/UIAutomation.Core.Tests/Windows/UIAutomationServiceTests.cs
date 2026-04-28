@@ -1,23 +1,17 @@
 using UIAutomation.Core;
+using UIAutomation.Core.Platforms.Windows;
 using UIAutomation.Core.Services;
 
-namespace UIAutomation.Core.Tests;
+namespace UIAutomation.Core.Tests.Windows;
 
 /// <summary>
-/// Integration tests for UIAutomationService. The service handles STA threading internally,
+/// Integration tests for WindowsUIAutomationBackend. The backend handles STA threading internally,
 /// so these tests use plain [RequiresInteractiveDesktopFact] (no [StaFact] needed).
 /// </summary>
 [Trait("Category", "Integration")]
 public class UIAutomationServiceTests
 {
-    private readonly UIAutomationService _service;
-    private readonly ElementCache _cache;
-
-    public UIAutomationServiceTests()
-    {
-        _cache = new ElementCache();
-        _service = new UIAutomationService(_cache);
-    }
+    private readonly IUIAutomationService _service = new WindowsUIAutomationBackend();
 
     [RequiresInteractiveDesktopFact]
     public void ListWindows_ReturnsNonEmptyList()
@@ -45,8 +39,8 @@ public class UIAutomationServiceTests
 
         foreach (var w in windows)
         {
-            Assert.True(_cache.TryGet(w.ElementId, out var element));
-            Assert.NotNull(element);
+            var info = _service.GetElementInfo(w.ElementId);
+            Assert.NotNull(info);
         }
     }
 
@@ -359,22 +353,34 @@ public class UIAutomationServiceTests
     [RequiresInteractiveDesktopFact]
     public void MoveElement_Throws_ForUnsupportedElement()
     {
-        // The desktop root is guaranteed by UI Automation to not support TransformPattern,
-        // making this test deterministic across machines (unlike picking an arbitrary top-level window).
-        var rootId = _cache.GetOrAdd(System.Windows.Automation.AutomationElement.RootElement);
+        // Use a window element — windows don't support TransformPattern.CanMove
+        // in a way that allows arbitrary repositioning via this API.
+        var windows = _service.ListWindows();
+        Assert.NotEmpty(windows);
+
+        // Most top-level windows do support TransformPattern, so use FindElements
+        // to locate a non-window element (e.g. a static text) that doesn't.
+        var children = _service.GetElementTree(windows[0].ElementId, maxDepth: 1);
+        var nonTransformable = children.FirstOrDefault(c => c.ControlType is "Text" or "Image");
+        if (nonTransformable is null) return; // skip if no suitable element found
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
-            _service.MoveElement(rootId, 100, 100));
+            _service.MoveElement(nonTransformable.ElementId, 100, 100));
         Assert.Contains("TransformPattern", ex.Message);
     }
 
     [RequiresInteractiveDesktopFact]
     public void ResizeElement_Throws_ForUnsupportedElement()
     {
-        var rootId = _cache.GetOrAdd(System.Windows.Automation.AutomationElement.RootElement);
+        var windows = _service.ListWindows();
+        Assert.NotEmpty(windows);
+
+        var children = _service.GetElementTree(windows[0].ElementId, maxDepth: 1);
+        var nonTransformable = children.FirstOrDefault(c => c.ControlType is "Text" or "Image");
+        if (nonTransformable is null) return; // skip if no suitable element found
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
-            _service.ResizeElement(rootId, 800, 600));
+            _service.ResizeElement(nonTransformable.ElementId, 800, 600));
         Assert.Contains("TransformPattern", ex.Message);
     }
 

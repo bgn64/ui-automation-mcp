@@ -1,24 +1,21 @@
 using System.Runtime.InteropServices;
 using System.Windows.Automation;
+using UIAutomation.Core;
 using UIAutomation.Core.Models;
+using UIAutomation.Core.Services;
 
-namespace UIAutomation.Core.Services;
+namespace UIAutomation.Core.Platforms.Windows;
 
 /// <summary>
-/// Implementation of IUIAutomationService using System.Windows.Automation.
+/// Platform backend using System.Windows.Automation.
 /// All public methods are marshaled to an STA thread to satisfy COM requirements.
 /// </summary>
-public sealed class UIAutomationService : IUIAutomationService
+public sealed class WindowsUIAutomationBackend : IUIAutomationService
 {
-    private readonly ElementCache _cache;
-    private static readonly object PhysicalInputLock = new();
+    private readonly WindowsElementCache _cache = new();
+    private static readonly object s_physicalInputLock = new();
 
-    public UIAutomationService(ElementCache cache)
-    {
-        _cache = cache;
-    }
-
-    public List<ElementInfo> ListWindows() => RunOnSta(() =>
+    public IReadOnlyList<ElementInfo> ListWindows() => RunOnSta(() =>
     {
         var root = AutomationElement.RootElement;
         var windows = root.FindAll(
@@ -44,7 +41,7 @@ public sealed class UIAutomationService : IUIAutomationService
         return results;
     });
 
-    public List<ElementInfo> FindElements(string parentElementId, string? name = null, string? automationId = null, string? controlType = null) => RunOnSta(() =>
+    public IReadOnlyList<ElementInfo> FindElements(string parentElementId, string? name = null, string? automationId = null, string? controlType = null) => RunOnSta(() =>
     {
         var parent = GetCachedElement(parentElementId);
 
@@ -100,7 +97,7 @@ public sealed class UIAutomationService : IUIAutomationService
         }
     });
 
-    public List<ElementInfo> GetElementTree(string elementId, int maxDepth = 3) => RunOnSta(() =>
+    public IReadOnlyList<ElementInfo> GetElementTree(string elementId, int maxDepth = 3) => RunOnSta(() =>
     {
         var root = GetCachedElement(elementId);
         var walker = TreeWalker.ControlViewWalker;
@@ -224,10 +221,10 @@ public sealed class UIAutomationService : IUIAutomationService
 
         // Best-effort focus before clicking.
         try { element.SetFocus(); }
-        catch { /* not all elements support focus */ }
+        catch (Exception) { /* not all elements support focus */ }
 
         // Serialize all physical input to prevent cursor races.
-        lock (PhysicalInputLock)
+        lock (s_physicalInputLock)
         {
             NativeMethods.GetCursorPos(out var previousPos);
 
@@ -381,14 +378,14 @@ public sealed class UIAutomationService : IUIAutomationService
             $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support WindowPattern.");
     });
 
-    public WindowInfo GetWindowInfo(string elementId) => RunOnSta(() =>
+    public WindowStateInfo GetWindowInfo(string elementId) => RunOnSta(() =>
     {
         var element = GetCachedElement(elementId);
 
         if (element.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern))
         {
             var windowPattern = (WindowPattern)pattern;
-            return new WindowInfo
+            return new WindowStateInfo
             {
                 WindowVisualState = windowPattern.Current.WindowVisualState.ToString(),
                 WindowInteractionState = windowPattern.Current.WindowInteractionState.ToString(),
@@ -481,7 +478,7 @@ public sealed class UIAutomationService : IUIAutomationService
         var element = GetCachedElement(elementId);
 
         // Serialize all physical input to prevent focus/cursor races.
-        lock (PhysicalInputLock)
+        lock (s_physicalInputLock)
         {
             element.SetFocus();
             Thread.Sleep(50); // Brief pause to let focus settle
@@ -876,6 +873,10 @@ public sealed class UIAutomationService : IUIAutomationService
         var thread = new Thread(() =>
         {
             try { result = func(); }
+            catch (ElementNotAvailableException ex)
+            {
+                exception = new ElementStaleException("The cached UI element is no longer available.", ex);
+            }
             catch (Exception ex) { exception = ex; }
         });
         thread.SetApartmentState(ApartmentState.STA);
@@ -948,7 +949,7 @@ public sealed class UIAutomationService : IUIAutomationService
                 .Where(n => !string.IsNullOrEmpty(n))
                 .ToArray();
         }
-        catch
+        catch (Exception)
         {
             return [];
         }
@@ -1018,7 +1019,7 @@ public sealed class UIAutomationService : IUIAutomationService
         return children;
     }
 
-    private static readonly Dictionary<string, ControlType> ControlTypeMap = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, ControlType> s_controlTypeMap = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Button"] = ControlType.Button,
         ["Calendar"] = ControlType.Calendar,
@@ -1063,6 +1064,6 @@ public sealed class UIAutomationService : IUIAutomationService
 
     private static ControlType? ParseControlType(string name)
     {
-        return ControlTypeMap.TryGetValue(name, out var ct) ? ct : null;
+        return s_controlTypeMap.TryGetValue(name, out var ct) ? ct : null;
     }
 }

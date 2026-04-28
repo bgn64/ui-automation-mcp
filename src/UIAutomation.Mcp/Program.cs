@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
-using UIAutomation.Core;
 using UIAutomation.Core.Services;
 using UIAutomation.Mcp;
 
@@ -20,9 +19,7 @@ builder.Logging.AddConsole(options =>
 builder.Services.AddHostedService<ParentProcessWatchdog>();
 
 // Register Core services
-builder.Services.AddSingleton<ElementCache>();
-builder.Services.AddSingleton<IUIAutomationService, UIAutomationService>();
-builder.Services.AddSingleton<IScreenCaptureService, ScreenCaptureService>();
+builder.Services.AddUIAutomationServices();
 
 // Register MCP server with stdio transport and auto-discovered tools
 builder.Services

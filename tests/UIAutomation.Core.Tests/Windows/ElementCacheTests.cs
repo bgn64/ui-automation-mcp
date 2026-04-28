@@ -1,15 +1,16 @@
 using UIAutomation.Core;
+using UIAutomation.Core.Platforms.Windows;
 using System.Windows.Automation;
 using Xunit;
 
-namespace UIAutomation.Core.Tests;
+namespace UIAutomation.Core.Tests.Windows;
 
 public class ElementCacheTests
 {
     [StaFact]
     public void GetOrAdd_AssignsUniqueIds()
     {
-        var cache = new ElementCache();
+        var cache = new WindowsElementCache();
         var root = AutomationElement.RootElement;
 
         var id = cache.GetOrAdd(root);
@@ -21,7 +22,7 @@ public class ElementCacheTests
     [StaFact]
     public void GetOrAdd_ReturnsSameId_ForSameElement()
     {
-        var cache = new ElementCache();
+        var cache = new WindowsElementCache();
         var root = AutomationElement.RootElement;
 
         var id1 = cache.GetOrAdd(root);
@@ -33,7 +34,7 @@ public class ElementCacheTests
     [StaFact]
     public void TryGet_ReturnsElement_WhenCached()
     {
-        var cache = new ElementCache();
+        var cache = new WindowsElementCache();
         var root = AutomationElement.RootElement;
         var id = cache.GetOrAdd(root);
 
@@ -46,7 +47,7 @@ public class ElementCacheTests
     [Fact]
     public void TryGet_ReturnsFalse_WhenNotCached()
     {
-        var cache = new ElementCache();
+        var cache = new WindowsElementCache();
 
         var found = cache.TryGet("e-999", out var element);
 
@@ -56,7 +57,7 @@ public class ElementCacheTests
     [StaFact]
     public void Count_ReflectsAddedElements()
     {
-        var cache = new ElementCache();
+        var cache = new WindowsElementCache();
         Assert.Equal(0, cache.Count);
 
         cache.GetOrAdd(AutomationElement.RootElement);
@@ -66,7 +67,7 @@ public class ElementCacheTests
     [StaFact]
     public void Eviction_RemovesOldestEntries_WhenOverCapacity()
     {
-        var cache = new ElementCache(maxCapacity: 2);
+        var cache = new WindowsElementCache(maxCapacity: 2);
         var root = AutomationElement.RootElement;
 
         // Add the root element (1 slot used)
@@ -92,7 +93,7 @@ public class ElementCacheTests
     [StaFact]
     public void Clear_RemovesAllEntries()
     {
-        var cache = new ElementCache();
+        var cache = new WindowsElementCache();
         cache.GetOrAdd(AutomationElement.RootElement);
         Assert.True(cache.Count > 0);
 

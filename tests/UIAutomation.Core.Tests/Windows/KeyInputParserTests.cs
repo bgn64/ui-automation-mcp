@@ -1,6 +1,6 @@
-using UIAutomation.Core.Services;
+using UIAutomation.Core.Platforms.Windows;
 
-namespace UIAutomation.Core.Tests;
+namespace UIAutomation.Core.Tests.Windows;
 
 public class KeyInputParserTests
 {

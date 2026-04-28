@@ -1,6 +1,7 @@
+using UIAutomation.Core.Platforms.Windows;
 using UIAutomation.Core.Services;
 
-namespace UIAutomation.Core.Tests;
+namespace UIAutomation.Core.Tests.Windows;
 
 /// <summary>
 /// Integration tests for ScreenCaptureService.
@@ -9,9 +10,9 @@ namespace UIAutomation.Core.Tests;
 [Trait("Category", "Integration")]
 public class ScreenCaptureServiceTests
 {
-    private static readonly byte[] PngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+    private static readonly byte[] s_pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 
-    private readonly ScreenCaptureService _service = new();
+    private readonly IScreenCaptureService _service = new WindowsScreenCaptureBackend();
 
     [RequiresInteractiveDesktopFact]
     public void CaptureScreen_ReturnsNonEmptyBytes()
@@ -24,8 +25,8 @@ public class ScreenCaptureServiceTests
     public void CaptureScreen_ReturnedBytesHaveValidPngHeader()
     {
         byte[] result = _service.CaptureScreen();
-        Assert.True(result.Length >= PngSignature.Length, "Result is too short to contain a PNG header.");
-        Assert.Equal(PngSignature, result[..PngSignature.Length]);
+        Assert.True(result.Length >= s_pngSignature.Length, "Result is too short to contain a PNG header.");
+        Assert.Equal(s_pngSignature, result[..s_pngSignature.Length]);
     }
 
     [RequiresInteractiveDesktopFact]
@@ -68,8 +69,8 @@ public class ScreenCaptureServiceTests
     public void CaptureMonitor_FirstMonitor_ReturnsValidPng()
     {
         byte[] result = _service.CaptureMonitor(0);
-        Assert.True(result.Length >= PngSignature.Length, "Result is too short to contain a PNG header.");
-        Assert.Equal(PngSignature, result[..PngSignature.Length]);
+        Assert.True(result.Length >= s_pngSignature.Length, "Result is too short to contain a PNG header.");
+        Assert.Equal(s_pngSignature, result[..s_pngSignature.Length]);
     }
 
     [RequiresInteractiveDesktopFact]

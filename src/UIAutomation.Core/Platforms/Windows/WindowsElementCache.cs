@@ -1,13 +1,13 @@
 using System.Collections.Concurrent;
 using System.Windows.Automation;
 
-namespace UIAutomation.Core;
+namespace UIAutomation.Core.Platforms.Windows;
 
 /// <summary>
 /// Thread-safe cache that assigns short string IDs to AutomationElement instances.
 /// Enables cross-call element referencing in the MCP tools.
 /// </summary>
-public sealed class ElementCache
+public sealed class WindowsElementCache
 {
     private readonly ConcurrentDictionary<string, AutomationElement> _idToElement = new();
     private readonly ConcurrentDictionary<string, string> _runtimeIdToId = new();
@@ -15,7 +15,7 @@ public sealed class ElementCache
     private int _nextId;
     private readonly int _maxCapacity;
 
-    public ElementCache(int maxCapacity = 512)
+    public WindowsElementCache(int maxCapacity = 512)
     {
         _maxCapacity = maxCapacity;
     }
@@ -30,7 +30,7 @@ public sealed class ElementCache
     {
         var runtimeIdKey = GetRuntimeIdKey(element);
 
-        if (runtimeIdKey != null && _runtimeIdToId.TryGetValue(runtimeIdKey, out var existingId))
+        if (runtimeIdKey is not null && _runtimeIdToId.TryGetValue(runtimeIdKey, out var existingId))
         {
             // Update the element reference (it may have been refreshed)
             _idToElement[existingId] = element;
@@ -42,7 +42,7 @@ public sealed class ElementCache
         _idToElement[id] = element;
         _insertionOrder.Enqueue(id);
 
-        if (runtimeIdKey != null)
+        if (runtimeIdKey is not null)
         {
             _runtimeIdToId[runtimeIdKey] = id;
         }
@@ -77,7 +77,7 @@ public sealed class ElementCache
             if (_idToElement.TryRemove(oldId, out var removed))
             {
                 var key = GetRuntimeIdKey(removed);
-                if (key != null)
+                if (key is not null)
                 {
                     _runtimeIdToId.TryRemove(key, out _);
                 }
@@ -90,11 +90,11 @@ public sealed class ElementCache
         try
         {
             var runtimeId = element.GetRuntimeId();
-            if (runtimeId == null || runtimeId.Length == 0)
+            if (runtimeId is null || runtimeId.Length == 0)
                 return null;
             return string.Join(".", runtimeId);
         }
-        catch
+        catch (Exception)
         {
             return null;
         }
