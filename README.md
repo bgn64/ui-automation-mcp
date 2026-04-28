@@ -58,9 +58,30 @@ To upgrade later:
 scoop update ui-automation-mcp
 ```
 
+### macOS: install with Homebrew (recommended)
+
+[Homebrew](https://brew.sh/) is a command-line installer for macOS.
+
+```bash
+brew tap bgn64/ui-automation-mcp https://github.com/bgn64/ui-automation-mcp
+brew install --cask ui-automation-mcp
+```
+
+This downloads a self-contained `.app` bundle to `/Applications` — no .NET SDK or runtime is required.
+
+To upgrade later:
+
+```bash
+brew upgrade --cask ui-automation-mcp
+```
+
+> **First-launch note**: the bundle is ad-hoc signed (not notarized), so macOS may show a Gatekeeper prompt the first time the MCP client launches it. Open **System Settings → Privacy & Security** and click **"Open Anyway"** to allow it.
+>
+> **Accessibility permission** is required to control your computer. Grant it once at **System Settings → Privacy & Security → Accessibility**, click **+**, and add `/Applications/UI Automation MCP.app`.
+
 ### macOS: build from source
 
-macOS support is not yet packaged for a public installer. Clone the repo and run:
+If you'd rather not use Homebrew, clone the repo and run:
 
 ```bash
 ./publish.sh                             # defaults to /Applications/UI Automation MCP.app
