@@ -33,11 +33,11 @@
   </ItemGroup>
 
   <ItemGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
-    <Compile Remove="ElementCacheTests.cs" />
-    <Compile Remove="KeyInputParserTests.cs" />
-    <Compile Remove="QueryElementsTests.cs" />
-    <Compile Remove="ScreenCaptureServiceTests.cs" />
-    <Compile Remove="UIAutomationServiceTests.cs" />
+    <Compile Remove="Windows/**" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!$([MSBuild]::IsOSPlatform('OSX'))">
+    <Compile Remove="MacOS/**" />
   </ItemGroup>
 
 </Project>

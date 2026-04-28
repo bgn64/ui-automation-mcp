@@ -1,7 +1,6 @@
-#if MACOS
 using UIAutomation.Core.Platforms.MacOS;
 
-namespace UIAutomation.Core.Tests;
+namespace UIAutomation.Core.Tests.MacOS;
 
 public class MacKeyInputHelperTests
 {
@@ -63,4 +62,3 @@ public class MacKeyInputHelperTests
         Assert.Throws<ArgumentException>(() => MacKeyInputHelper.Parse("{UnknownKey}"));
     }
 }
-#endif

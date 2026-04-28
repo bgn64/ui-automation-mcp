@@ -2,14 +2,13 @@
 using System.Globalization;
 using UIAutomation.Core.Models;
 using UIAutomation.Core.Services;
-using UIAutomation.Core.Backends;
 
 namespace UIAutomation.Core.Platforms.MacOS;
 
 /// <summary>
 /// macOS Accessibility backend for UI automation.
 /// </summary>
-public sealed class MacUIAutomationBackend : IUIAutomationBackend
+public sealed class MacUIAutomationBackend : IUIAutomationService
 {
     private const string AXWindows = "AXWindows";
     private const string AXChildren = "AXChildren";
@@ -51,14 +50,9 @@ public sealed class MacUIAutomationBackend : IUIAutomationBackend
 
     private static readonly object s_physicalInputLock = new();
 
-    private readonly MacElementCache _cache;
+    private readonly MacElementCache _cache = new();
 
-    public MacUIAutomationBackend(MacElementCache cache)
-    {
-        _cache = cache;
-    }
-
-    public List<ElementInfo> ListWindows()
+    public IReadOnlyList<ElementInfo> ListWindows()
     {
         EnsureAccessibilityTrusted();
 
@@ -110,7 +104,7 @@ public sealed class MacUIAutomationBackend : IUIAutomationBackend
             .ToList();
     }
 
-    public List<ElementInfo> FindElements(string parentElementId, string? name = null, string? automationId = null, string? controlType = null)
+    public IReadOnlyList<ElementInfo> FindElements(string parentElementId, string? name = null, string? automationId = null, string? controlType = null)
     {
         EnsureAccessibilityTrusted();
         var parent = GetCachedElement(parentElementId);
@@ -156,7 +150,7 @@ public sealed class MacUIAutomationBackend : IUIAutomationBackend
         }
     }
 
-    public List<ElementInfo> GetElementTree(string elementId, int maxDepth = 3)
+    public IReadOnlyList<ElementInfo> GetElementTree(string elementId, int maxDepth = 3)
     {
         EnsureAccessibilityTrusted();
         var root = GetCachedElement(elementId);

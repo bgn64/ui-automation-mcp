@@ -1,7 +1,6 @@
-#if MACOS
 using UIAutomation.Core.Platforms.MacOS;
 
-namespace UIAutomation.Core.Tests;
+namespace UIAutomation.Core.Tests.MacOS;
 
 [Trait("Category", "Integration")]
 public class MacScreenCaptureBackendTests
@@ -30,4 +29,3 @@ public class MacScreenCaptureBackendTests
         }
     }
 }
-#endif

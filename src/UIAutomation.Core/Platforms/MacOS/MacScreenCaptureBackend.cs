@@ -2,14 +2,13 @@
 using System.Runtime.InteropServices;
 using UIAutomation.Core.Models;
 using UIAutomation.Core.Services;
-using UIAutomation.Core.Backends;
 
 namespace UIAutomation.Core.Platforms.MacOS;
 
 /// <summary>
 /// Captures macOS displays using CoreGraphics and encodes images with ImageIO.
 /// </summary>
-public sealed class MacScreenCaptureBackend : IScreenCaptureBackend
+public sealed class MacScreenCaptureBackend : IScreenCaptureService
 {
     public byte[] CaptureScreen()
     {
@@ -131,11 +130,12 @@ public sealed class MacScreenCaptureBackend : IScreenCaptureBackend
             throw new InvalidOperationException("Unable to allocate CFMutableData for PNG encoding.");
         }
 
-        var pngType = MacNativeMethods.CreateCFString("public.png");
+        IntPtr pngType = IntPtr.Zero;
         IntPtr destination = IntPtr.Zero;
 
         try
         {
+            pngType = MacNativeMethods.CreateCFString("public.png");
             destination = MacNativeMethods.CGImageDestinationCreateWithData(data, pngType, 1, IntPtr.Zero);
             if (destination == IntPtr.Zero)
             {
@@ -166,7 +166,11 @@ public sealed class MacScreenCaptureBackend : IScreenCaptureBackend
                 MacNativeMethods.CFRelease(destination);
             }
 
-            MacNativeMethods.CFRelease(pngType);
+            if (pngType != IntPtr.Zero)
+            {
+                MacNativeMethods.CFRelease(pngType);
+            }
+
             MacNativeMethods.CFRelease(data);
         }
     }
