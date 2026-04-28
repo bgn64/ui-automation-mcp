@@ -30,7 +30,7 @@ public sealed class WindowsElementCache
     {
         var runtimeIdKey = GetRuntimeIdKey(element);
 
-        if (runtimeIdKey != null && _runtimeIdToId.TryGetValue(runtimeIdKey, out var existingId))
+        if (runtimeIdKey is not null && _runtimeIdToId.TryGetValue(runtimeIdKey, out var existingId))
         {
             // Update the element reference (it may have been refreshed)
             _idToElement[existingId] = element;
@@ -42,7 +42,7 @@ public sealed class WindowsElementCache
         _idToElement[id] = element;
         _insertionOrder.Enqueue(id);
 
-        if (runtimeIdKey != null)
+        if (runtimeIdKey is not null)
         {
             _runtimeIdToId[runtimeIdKey] = id;
         }
@@ -77,7 +77,7 @@ public sealed class WindowsElementCache
             if (_idToElement.TryRemove(oldId, out var removed))
             {
                 var key = GetRuntimeIdKey(removed);
-                if (key != null)
+                if (key is not null)
                 {
                     _runtimeIdToId.TryRemove(key, out _);
                 }
@@ -90,11 +90,11 @@ public sealed class WindowsElementCache
         try
         {
             var runtimeId = element.GetRuntimeId();
-            if (runtimeId == null || runtimeId.Length == 0)
+            if (runtimeId is null || runtimeId.Length == 0)
                 return null;
             return string.Join(".", runtimeId);
         }
-        catch
+        catch (Exception)
         {
             return null;
         }

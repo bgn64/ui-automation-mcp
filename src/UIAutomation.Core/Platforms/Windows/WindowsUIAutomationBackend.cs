@@ -14,7 +14,7 @@ namespace UIAutomation.Core.Platforms.Windows;
 public sealed class WindowsUIAutomationBackend : IUIAutomationBackend
 {
     private readonly WindowsElementCache _cache;
-    private static readonly object PhysicalInputLock = new();
+    private static readonly object s_physicalInputLock = new();
 
     public WindowsUIAutomationBackend(WindowsElementCache cache)
     {
@@ -227,10 +227,10 @@ public sealed class WindowsUIAutomationBackend : IUIAutomationBackend
 
         // Best-effort focus before clicking.
         try { element.SetFocus(); }
-        catch { /* not all elements support focus */ }
+        catch (Exception) { /* not all elements support focus */ }
 
         // Serialize all physical input to prevent cursor races.
-        lock (PhysicalInputLock)
+        lock (s_physicalInputLock)
         {
             NativeMethods.GetCursorPos(out var previousPos);
 
@@ -484,7 +484,7 @@ public sealed class WindowsUIAutomationBackend : IUIAutomationBackend
         var element = GetCachedElement(elementId);
 
         // Serialize all physical input to prevent focus/cursor races.
-        lock (PhysicalInputLock)
+        lock (s_physicalInputLock)
         {
             element.SetFocus();
             Thread.Sleep(50); // Brief pause to let focus settle
@@ -955,7 +955,7 @@ public sealed class WindowsUIAutomationBackend : IUIAutomationBackend
                 .Where(n => !string.IsNullOrEmpty(n))
                 .ToArray();
         }
-        catch
+        catch (Exception)
         {
             return [];
         }
@@ -1025,7 +1025,7 @@ public sealed class WindowsUIAutomationBackend : IUIAutomationBackend
         return children;
     }
 
-    private static readonly Dictionary<string, ControlType> ControlTypeMap = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, ControlType> s_controlTypeMap = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Button"] = ControlType.Button,
         ["Calendar"] = ControlType.Calendar,
@@ -1070,6 +1070,6 @@ public sealed class WindowsUIAutomationBackend : IUIAutomationBackend
 
     private static ControlType? ParseControlType(string name)
     {
-        return ControlTypeMap.TryGetValue(name, out var ct) ? ct : null;
+        return s_controlTypeMap.TryGetValue(name, out var ct) ? ct : null;
     }
 }

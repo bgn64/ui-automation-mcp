@@ -12,7 +12,7 @@ namespace UIAutomation.Core.Platforms.Windows;
 internal static class KeyInputParser
 {
     // Virtual key codes for named keys
-    private static readonly Dictionary<string, ushort> NamedKeys = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, ushort> s_namedKeys = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Enter"] = 0x0D,
         ["Return"] = 0x0D,
@@ -45,7 +45,7 @@ internal static class KeyInputParser
     };
 
     // Modifier name → virtual key code
-    private static readonly Dictionary<string, ushort> Modifiers = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, ushort> s_modifiers = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Ctrl"] = 0xA2,    // VK_LCONTROL
         ["Control"] = 0xA2,
@@ -55,7 +55,7 @@ internal static class KeyInputParser
     };
 
     // Extended keys that need KEYEVENTF_EXTENDEDKEY
-    private static readonly HashSet<ushort> ExtendedKeys =
+    private static readonly HashSet<ushort> s_extendedKeys =
     [
         0x21, 0x22, 0x23, 0x24, // PageUp, PageDown, End, Home
         0x25, 0x26, 0x27, 0x28, // Left, Up, Right, Down
@@ -126,7 +126,7 @@ internal static class KeyInputParser
         if (parts.Length == 1)
         {
             // Simple named key
-            if (!NamedKeys.TryGetValue(token, out var vk))
+            if (!s_namedKeys.TryGetValue(token, out var vk))
                 throw new ArgumentException($"Unknown key name '{token}'.");
 
             AddVirtualKey(inputs, vk);
@@ -138,7 +138,7 @@ internal static class KeyInputParser
             for (int m = 0; m < parts.Length - 1; m++)
             {
                 var modName = parts[m].Trim();
-                if (!Modifiers.TryGetValue(modName, out var modVk))
+                if (!s_modifiers.TryGetValue(modName, out var modVk))
                     throw new ArgumentException($"Unknown modifier '{modName}' in key combo '{token}'.");
                 modifierVks.Add(modVk);
             }
@@ -146,7 +146,7 @@ internal static class KeyInputParser
             var keyName = parts[^1].Trim();
             ushort keyVk;
 
-            if (NamedKeys.TryGetValue(keyName, out var namedVk))
+            if (s_namedKeys.TryGetValue(keyName, out var namedVk))
             {
                 keyVk = namedVk;
             }
@@ -209,7 +209,7 @@ internal static class KeyInputParser
     private static void AddKeyDown(List<NativeMethods.INPUT> inputs, ushort vk)
     {
         uint flags = 0;
-        if (ExtendedKeys.Contains(vk))
+        if (s_extendedKeys.Contains(vk))
             flags |= NativeMethods.KEYEVENTF_EXTENDEDKEY;
 
         inputs.Add(new NativeMethods.INPUT
@@ -227,7 +227,7 @@ internal static class KeyInputParser
     private static void AddKeyUp(List<NativeMethods.INPUT> inputs, ushort vk)
     {
         uint flags = NativeMethods.KEYEVENTF_KEYUP;
-        if (ExtendedKeys.Contains(vk))
+        if (s_extendedKeys.Contains(vk))
             flags |= NativeMethods.KEYEVENTF_EXTENDEDKEY;
 
         inputs.Add(new NativeMethods.INPUT
