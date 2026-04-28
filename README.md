@@ -84,13 +84,16 @@ brew upgrade --cask ui-automation-mcp
 If you'd rather not use Homebrew, clone the repo and run:
 
 ```bash
-./publish.sh                             # defaults to /Applications/UI Automation MCP.app
-./publish.sh ~/my-custom-location.app    # or choose your own path
+./publish.sh                     # writes ./publish/UI Automation MCP.app
+./publish.sh --output-dir ~/apps # or choose your own directory
 ```
 
-The publish script creates a `.app` bundle, which macOS requires for granting
-Accessibility permissions. The bundle contains a single self-contained executable;
-no .NET SDK or runtime installation is required.
+Then drag the `.app` bundle to `/Applications` (or anywhere else you'd like to
+keep it). The bundle contains a single self-contained executable; no .NET SDK
+or runtime installation is required.
+
+macOS requires a `.app` bundle (rather than a bare executable) to grant
+Accessibility permissions.
 
 ### Add the MCP server to your configuration
 
@@ -212,14 +215,15 @@ macOS requires privacy permissions for desktop automation:
 Windows:
 
 ```powershell
-.\publish.ps1
+.\publish.ps1                       # writes .\publish\
+.\publish.ps1 -OutputDir C:\tools   # or choose your own directory
 ```
 
 macOS:
 
 ```bash
-./publish.sh                             # installs to /Applications/UI Automation MCP.app
-./publish.sh ~/MyApp.app                 # custom location
+./publish.sh                         # writes ./publish/UI Automation MCP.app
+./publish.sh --output-dir ~/apps     # or choose your own directory
 ```
 
 The macOS publish is self-contained and single-file, so the app bundle should contain
