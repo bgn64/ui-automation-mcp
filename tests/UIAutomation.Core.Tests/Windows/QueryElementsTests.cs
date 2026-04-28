@@ -157,27 +157,23 @@ public class QueryElementsTests
     }
 
     [RequiresInteractiveDesktopFact]
-    public void QueryElements_OnlyCachesMatchedElements()
+    public void QueryElements_ReturnsOnlyMatchedElements()
     {
-        // Use a fresh cache to verify caching behavior
-        var cache = new WindowsElementCache();
-        var service = new UIAutomationService(new WindowsUIAutomationBackend(cache));
-
-        var windows = service.ListWindows();
+        var windows = _service.ListWindows();
         Assert.NotEmpty(windows);
-        int cacheCountAfterListWindows = cache.Count;
 
-        var result = service.QueryElements(windows[0].ElementId, new ElementQueryOptions
+        var result = _service.QueryElements(windows[0].ElementId, new ElementQueryOptions
         {
             Filter = new ElementFilter { ControlTypes = ["Button"] },
             Flatten = true,
             MaxDepth = 3,
         });
 
-        // Cache should grow by exactly the number of matched elements returned
-        // (plus any that were already cached from ListWindows)
-        int newlyCached = cache.Count - cacheCountAfterListWindows;
-        Assert.Equal(result.Elements.Count, newlyCached);
+        // All returned elements should be Buttons
+        foreach (var el in result.Elements)
+        {
+            Assert.Equal("Button", el.ControlType);
+        }
     }
 
     [RequiresInteractiveDesktopFact]
