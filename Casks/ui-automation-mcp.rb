@@ -1,8 +1,8 @@
 cask "ui-automation-mcp" do
-  # The first macOS bundle will be produced by the next tagged release; until
-  # then the URL points at a release asset that doesn't exist yet, so we leave
-  # hash verification disabled. The release workflow rewrites both `version`
-  # and `sha256` whenever it publishes a new bundle.
+  # The release workflow rewrites both `version` and the `sha256` line below
+  # whenever it publishes a tagged release. Until the first macOS bundle has
+  # been published, `sha256 :no_check` keeps `brew install` from failing
+  # against a missing artifact.
   version "0.1.1"
   sha256 :no_check
 
