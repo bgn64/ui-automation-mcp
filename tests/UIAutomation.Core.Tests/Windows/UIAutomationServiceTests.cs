@@ -12,7 +12,6 @@ namespace UIAutomation.Core.Tests.Windows;
 public class UIAutomationServiceTests
 {
     private readonly IUIAutomationService _service = new WindowsUIAutomationBackend();
-    }
 
     [RequiresInteractiveDesktopFact]
     public void ListWindows_ReturnsNonEmptyList()
