@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-#if WINDOWS
+#if MACOS
+using UIAutomation.Core.Platforms.MacOS;
+#elif WINDOWS
 using UIAutomation.Core.Platforms.Windows;
 #endif
 
@@ -15,8 +17,11 @@ public static class UIAutomationServiceCollectionExtensions
 #if WINDOWS
         services.AddSingleton<IUIAutomationService, WindowsUIAutomationBackend>();
         services.AddSingleton<IScreenCaptureService, WindowsScreenCaptureBackend>();
+#elif MACOS
+        services.AddSingleton<IUIAutomationService, MacUIAutomationBackend>();
+        services.AddSingleton<IScreenCaptureService, MacScreenCaptureBackend>();
 #else
-        throw new PlatformNotSupportedException("ui-automation-mcp currently supports Windows.");
+        throw new PlatformNotSupportedException("ui-automation-mcp currently supports Windows and macOS.");
 #endif
 
         return services;

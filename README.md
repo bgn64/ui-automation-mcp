@@ -1,10 +1,10 @@
 # ui-automation-mcp
 
-An MCP (Model Context Protocol) server that exposes Windows UI Automation as tools — letting AI agents find, inspect, and interact with desktop application UIs.
+An MCP (Model Context Protocol) server that exposes OS-level desktop accessibility automation as tools — letting AI agents find, inspect, and interact with desktop application UIs on Windows and macOS.
 
 ## What is this for?
 
-This MCP enables **UI automation driven by a large language model**. It gives an AI agent the ability to see, navigate, and operate any Windows desktop application — clicking buttons, filling in forms, reading text, and more — just as a human would.
+This MCP enables **UI automation driven by a large language model**. It gives an AI agent the ability to see, navigate, and operate desktop applications — clicking buttons, filling in forms, reading text, and more — just as a human would.
 
 It is **not intended to replace any first-party MCPs**. Where a dedicated MCP already exists for an application or service, prefer that. This server is meant to **bridge the gaps** where first-party tool support does not yet exist, giving agents a general-purpose fallback for interacting with arbitrary desktop UIs.
 
@@ -12,7 +12,7 @@ It is **not intended to replace any first-party MCPs**. Where a dedicated MCP al
 
 ## Features
 
-Built with .NET 9 and the Windows UI Automation framework, it provides tools for:
+Built with .NET 9, Windows UI Automation, and the macOS Accessibility/CoreGraphics APIs, it provides tools for:
 
 - **Window discovery** — list and manage top-level windows
 - **Element search** — find elements by name, automation ID, control type, and more
@@ -21,9 +21,27 @@ Built with .NET 9 and the Windows UI Automation framework, it provides tools for
 - **Screen capture** — take screenshots (full screen or per-monitor)
 - **Advanced queries** — flexible filtered search with depth control, pattern matching, and property projection
 
+## Architecture
+
+The MCP tool surface is shared across platforms. It calls platform-neutral services and models, which then delegate to the active OS backend:
+
+```text
+UIAutomation.Mcp/Tools
+  -> UIAutomation.Core/Shared/Services
+  -> UIAutomation.Core/Shared/Backends
+  -> UIAutomation.Core/Platforms/MacOS or UIAutomation.Core/Platforms/Windows
+  -> native OS automation APIs
+  -> UIAutomation.Core/Shared/Models
+```
+
+- `Shared/Models/` contains platform-neutral DTOs only; it does not know about macOS, Windows, or future platforms.
+- `Shared/Services/` contains the shared front-end contracts and delegating services used by MCP tools.
+- `Shared/Backends/` contains the backend contracts implemented by each platform.
+- `Platforms/MacOS/` and `Platforms/Windows/` contain all OS-specific native interop and behavior.
+
 ## Installation
 
-### Recommended: install with Scoop
+### Windows: install with Scoop (recommended)
 
 [Scoop](https://scoop.sh/) is a command-line installer for Windows.
 
@@ -40,9 +58,24 @@ To upgrade later:
 scoop update ui-automation-mcp
 ```
 
+### macOS: build from source
+
+macOS support is not yet packaged for a public installer. Clone the repo and run:
+
+```bash
+./publish.sh                             # defaults to /Applications/UI Automation MCP.app
+./publish.sh ~/my-custom-location.app    # or choose your own path
+```
+
+The publish script creates a `.app` bundle, which macOS requires for granting
+Accessibility permissions. The bundle contains a single self-contained executable;
+no .NET SDK or runtime installation is required.
+
 ### Add the MCP server to your configuration
 
 Add the following entry to your MCP client's JSON configuration file:
+
+Windows:
 
 ```json
 {
@@ -54,6 +87,21 @@ Add the following entry to your MCP client's JSON configuration file:
   }
 }
 ```
+
+macOS:
+
+```json
+{
+  "mcpServers": {
+    "ui-automation": {
+      "type": "stdio",
+      "command": "/Applications/UI Automation MCP.app/Contents/MacOS/ui-automation-mcp"
+    }
+  }
+}
+```
+
+> **Adjust the path** to match wherever you installed the `.app` bundle.
 
 ### Where do I find my MCP configuration file?
 
@@ -92,7 +140,9 @@ The zip is self-contained — no .NET SDK or runtime installation is required.
 
 ### Run from source
 
-If you have the [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) installed and prefer to run from source, clone the repo and point your MCP config at the project directly:
+If you have the [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) installed and prefer to run from source, clone the repo and point your MCP config at the project directly.
+
+Windows:
 
 ```json
 {
@@ -106,8 +156,50 @@ If you have the [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) i
 }
 ```
 
+macOS:
+
+```json
+{
+  "mcpServers": {
+    "ui-automation": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": ["run", "--project", "/path/to/ui-automation-mcp/src/UIAutomation.Mcp"]
+    }
+  }
+}
+```
+
 > **Note:** The first launch will be slower as `dotnet run` compiles the project.
 
 ## Requirements
 
-- **Windows** — this server uses the Windows UI Automation API and only runs on Windows.
+- **Windows** — uses Windows UI Automation and Win32 APIs.
+- **macOS** — uses Accessibility (`AXUIElement`), CoreGraphics (`CGEvent`, `CGDisplay`), and ImageIO.
+
+### macOS permissions
+
+macOS requires privacy permissions for desktop automation:
+
+1. Open **System Settings > Privacy & Security > Accessibility**, click "+", and add the `.app` bundle (e.g. `/Applications/UI Automation MCP.app`).
+2. Open **System Settings > Privacy & Security > Screen & System Audio Recording** and allow the same `.app` bundle if screenshots should include screen contents.
+
+> macOS grants Accessibility trust per-binary. A `.app` bundle (created by `publish.sh`) is required — macOS will not list a bare executable in the Accessibility settings.
+
+## Publishing from source
+
+Windows:
+
+```powershell
+.\publish.ps1
+```
+
+macOS:
+
+```bash
+./publish.sh                             # installs to /Applications/UI Automation MCP.app
+./publish.sh ~/MyApp.app                 # custom location
+```
+
+The macOS publish is self-contained and single-file, so the app bundle should contain
+only `Contents/MacOS/ui-automation-mcp` plus the standard bundle metadata.
