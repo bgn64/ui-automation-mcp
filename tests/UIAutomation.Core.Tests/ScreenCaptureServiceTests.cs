@@ -1,3 +1,4 @@
+using UIAutomation.Core.Platforms.Windows;
 using UIAutomation.Core.Services;
 
 namespace UIAutomation.Core.Tests;
@@ -11,7 +12,7 @@ public class ScreenCaptureServiceTests
 {
     private static readonly byte[] PngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 
-    private readonly ScreenCaptureService _service = new();
+    private readonly ScreenCaptureService _service = new(new WindowsScreenCaptureBackend());
 
     [RequiresInteractiveDesktopFact]
     public void CaptureScreen_ReturnsNonEmptyBytes()

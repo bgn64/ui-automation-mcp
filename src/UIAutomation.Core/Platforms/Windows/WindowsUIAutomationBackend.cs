@@ -1,19 +1,22 @@
 using System.Runtime.InteropServices;
 using System.Windows.Automation;
+using UIAutomation.Core;
+using UIAutomation.Core.Backends;
 using UIAutomation.Core.Models;
+using UIAutomation.Core.Services;
 
-namespace UIAutomation.Core.Services;
+namespace UIAutomation.Core.Platforms.Windows;
 
 /// <summary>
-/// Implementation of IUIAutomationService using System.Windows.Automation.
+/// Platform backend using System.Windows.Automation.
 /// All public methods are marshaled to an STA thread to satisfy COM requirements.
 /// </summary>
-public sealed class UIAutomationService : IUIAutomationService
+public sealed class WindowsUIAutomationBackend : IUIAutomationBackend
 {
-    private readonly ElementCache _cache;
+    private readonly WindowsElementCache _cache;
     private static readonly object PhysicalInputLock = new();
 
-    public UIAutomationService(ElementCache cache)
+    public WindowsUIAutomationBackend(WindowsElementCache cache)
     {
         _cache = cache;
     }
@@ -381,14 +384,14 @@ public sealed class UIAutomationService : IUIAutomationService
             $"Element '{elementId}' (Name=\"{element.Current.Name}\") does not support WindowPattern.");
     });
 
-    public WindowInfo GetWindowInfo(string elementId) => RunOnSta(() =>
+    public WindowStateInfo GetWindowInfo(string elementId) => RunOnSta(() =>
     {
         var element = GetCachedElement(elementId);
 
         if (element.TryGetCurrentPattern(WindowPattern.Pattern, out var pattern))
         {
             var windowPattern = (WindowPattern)pattern;
-            return new WindowInfo
+            return new WindowStateInfo
             {
                 WindowVisualState = windowPattern.Current.WindowVisualState.ToString(),
                 WindowInteractionState = windowPattern.Current.WindowInteractionState.ToString(),
@@ -876,6 +879,10 @@ public sealed class UIAutomationService : IUIAutomationService
         var thread = new Thread(() =>
         {
             try { result = func(); }
+            catch (ElementNotAvailableException ex)
+            {
+                exception = new ElementStaleException("The cached UI element is no longer available.", ex);
+            }
             catch (Exception ex) { exception = ex; }
         });
         thread.SetApartmentState(ApartmentState.STA);

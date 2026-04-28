@@ -1,13 +1,13 @@
 using System.Collections.Concurrent;
 using System.Windows.Automation;
 
-namespace UIAutomation.Core;
+namespace UIAutomation.Core.Platforms.Windows;
 
 /// <summary>
 /// Thread-safe cache that assigns short string IDs to AutomationElement instances.
 /// Enables cross-call element referencing in the MCP tools.
 /// </summary>
-public sealed class ElementCache
+public sealed class WindowsElementCache
 {
     private readonly ConcurrentDictionary<string, AutomationElement> _idToElement = new();
     private readonly ConcurrentDictionary<string, string> _runtimeIdToId = new();
@@ -15,7 +15,7 @@ public sealed class ElementCache
     private int _nextId;
     private readonly int _maxCapacity;
 
-    public ElementCache(int maxCapacity = 512)
+    public WindowsElementCache(int maxCapacity = 512)
     {
         _maxCapacity = maxCapacity;
     }

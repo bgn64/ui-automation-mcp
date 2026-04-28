@@ -1,3 +1,4 @@
+using UIAutomation.Core.Platforms.Windows;
 using UIAutomation.Core.Services;
 
 namespace UIAutomation.Core.Tests;

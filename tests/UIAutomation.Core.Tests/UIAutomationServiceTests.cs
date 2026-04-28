@@ -1,4 +1,5 @@
 using UIAutomation.Core;
+using UIAutomation.Core.Platforms.Windows;
 using UIAutomation.Core.Services;
 
 namespace UIAutomation.Core.Tests;
@@ -11,12 +12,12 @@ namespace UIAutomation.Core.Tests;
 public class UIAutomationServiceTests
 {
     private readonly UIAutomationService _service;
-    private readonly ElementCache _cache;
+    private readonly WindowsElementCache _cache;
 
     public UIAutomationServiceTests()
     {
-        _cache = new ElementCache();
-        _service = new UIAutomationService(_cache);
+        _cache = new WindowsElementCache();
+        _service = new UIAutomationService(new WindowsUIAutomationBackend(_cache));
     }
 
     [RequiresInteractiveDesktopFact]

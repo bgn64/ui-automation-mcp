@@ -1,9 +1,9 @@
 namespace UIAutomation.Core.Models;
 
 /// <summary>
-/// Information about a window's state from WindowPattern.
+/// Platform-neutral information about an application window's current state.
 /// </summary>
-public sealed class WindowInfo
+public sealed class WindowStateInfo
 {
     public required string WindowVisualState { get; init; }
     public required string WindowInteractionState { get; init; }

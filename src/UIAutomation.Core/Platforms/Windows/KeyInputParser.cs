@@ -1,4 +1,4 @@
-namespace UIAutomation.Core.Services;
+namespace UIAutomation.Core.Platforms.Windows;
 
 /// <summary>
 /// Parses a key input string into an array of Win32 INPUT structures for SendInput.

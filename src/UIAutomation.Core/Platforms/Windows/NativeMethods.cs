@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace UIAutomation.Core.Services;
+namespace UIAutomation.Core.Platforms.Windows;
 
 /// <summary>
 /// Win32 P/Invoke declarations for physical input simulation (mouse and keyboard)

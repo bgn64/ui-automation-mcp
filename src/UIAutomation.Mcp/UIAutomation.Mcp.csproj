@@ -8,6 +8,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ui-automation-mcp</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using UIAutomation.Core;
 
 namespace UIAutomation.Mcp.Tools;
 
@@ -34,5 +35,5 @@ internal static class ToolResponse
         ex is KeyNotFoundException              // bad elementId
         || ex is InvalidOperationException      // unsupported pattern
         || ex is ArgumentException              // bad parameter value
-        || ex is System.Windows.Automation.ElementNotAvailableException;  // stale element
+        || ex is ElementStaleException;         // stale element
 }

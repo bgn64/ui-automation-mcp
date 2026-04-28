@@ -2,14 +2,16 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
+using UIAutomation.Core.Backends;
 using UIAutomation.Core.Models;
+using UIAutomation.Core.Services;
 
-namespace UIAutomation.Core.Services;
+namespace UIAutomation.Core.Platforms.Windows;
 
 /// <summary>
 /// Captures the screen using GDI+ with DPI-aware physical pixel coordinates.
 /// </summary>
-public sealed class ScreenCaptureService : IScreenCaptureService
+public sealed class WindowsScreenCaptureBackend : IScreenCaptureBackend
 {
     /// <inheritdoc />
     public byte[] CaptureScreen()

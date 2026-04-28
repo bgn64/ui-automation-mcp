@@ -1,5 +1,6 @@
 using UIAutomation.Core;
 using UIAutomation.Core.Models;
+using UIAutomation.Core.Platforms.Windows;
 using UIAutomation.Core.Services;
 
 namespace UIAutomation.Core.Tests;
@@ -12,12 +13,12 @@ namespace UIAutomation.Core.Tests;
 public class QueryElementsTests
 {
     private readonly UIAutomationService _service;
-    private readonly ElementCache _cache;
+    private readonly WindowsElementCache _cache;
 
     public QueryElementsTests()
     {
-        _cache = new ElementCache();
-        _service = new UIAutomationService(_cache);
+        _cache = new WindowsElementCache();
+        _service = new UIAutomationService(new WindowsUIAutomationBackend(_cache));
     }
 
     private string GetFirstWindowId()
@@ -166,8 +167,8 @@ public class QueryElementsTests
     public void QueryElements_OnlyCachesMatchedElements()
     {
         // Use a fresh cache to verify caching behavior
-        var cache = new ElementCache();
-        var service = new UIAutomationService(cache);
+        var cache = new WindowsElementCache();
+        var service = new UIAutomationService(new WindowsUIAutomationBackend(cache));
 
         var windows = service.ListWindows();
         Assert.NotEmpty(windows);
