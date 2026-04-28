@@ -2,22 +2,16 @@ using UIAutomation.Core;
 using UIAutomation.Core.Platforms.Windows;
 using UIAutomation.Core.Services;
 
-namespace UIAutomation.Core.Tests;
+namespace UIAutomation.Core.Tests.Windows;
 
 /// <summary>
-/// Integration tests for UIAutomationService. The service handles STA threading internally,
+/// Integration tests for WindowsUIAutomationBackend. The backend handles STA threading internally,
 /// so these tests use plain [RequiresInteractiveDesktopFact] (no [StaFact] needed).
 /// </summary>
 [Trait("Category", "Integration")]
 public class UIAutomationServiceTests
 {
-    private readonly UIAutomationService _service;
-    private readonly WindowsElementCache _cache;
-
-    public UIAutomationServiceTests()
-    {
-        _cache = new WindowsElementCache();
-        _service = new UIAutomationService(new WindowsUIAutomationBackend(_cache));
+    private readonly IUIAutomationService _service = new WindowsUIAutomationBackend();
     }
 
     [RequiresInteractiveDesktopFact]

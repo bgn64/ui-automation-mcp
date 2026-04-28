@@ -3,23 +3,16 @@ using UIAutomation.Core.Models;
 using UIAutomation.Core.Platforms.Windows;
 using UIAutomation.Core.Services;
 
-namespace UIAutomation.Core.Tests;
+namespace UIAutomation.Core.Tests.Windows;
 
 /// <summary>
-/// Integration tests for QueryElements on UIAutomationService.
+/// Integration tests for QueryElements on WindowsUIAutomationBackend.
 /// These tests run against real UI Automation (desktop must have at least one window).
 /// </summary>
 [Trait("Category", "Integration")]
 public class QueryElementsTests
 {
-    private readonly UIAutomationService _service;
-    private readonly WindowsElementCache _cache;
-
-    public QueryElementsTests()
-    {
-        _cache = new WindowsElementCache();
-        _service = new UIAutomationService(new WindowsUIAutomationBackend(_cache));
-    }
+    private readonly IUIAutomationService _service = new WindowsUIAutomationBackend();
 
     private string GetFirstWindowId()
     {

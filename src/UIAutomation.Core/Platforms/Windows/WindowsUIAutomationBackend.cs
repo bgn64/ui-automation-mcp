@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Windows.Automation;
 using UIAutomation.Core;
-using UIAutomation.Core.Backends;
 using UIAutomation.Core.Models;
 using UIAutomation.Core.Services;
 
@@ -11,17 +10,12 @@ namespace UIAutomation.Core.Platforms.Windows;
 /// Platform backend using System.Windows.Automation.
 /// All public methods are marshaled to an STA thread to satisfy COM requirements.
 /// </summary>
-public sealed class WindowsUIAutomationBackend : IUIAutomationBackend
+public sealed class WindowsUIAutomationBackend : IUIAutomationService
 {
-    private readonly WindowsElementCache _cache;
+    private readonly WindowsElementCache _cache = new();
     private static readonly object s_physicalInputLock = new();
 
-    public WindowsUIAutomationBackend(WindowsElementCache cache)
-    {
-        _cache = cache;
-    }
-
-    public List<ElementInfo> ListWindows() => RunOnSta(() =>
+    public IReadOnlyList<ElementInfo> ListWindows() => RunOnSta(() =>
     {
         var root = AutomationElement.RootElement;
         var windows = root.FindAll(
@@ -47,7 +41,7 @@ public sealed class WindowsUIAutomationBackend : IUIAutomationBackend
         return results;
     });
 
-    public List<ElementInfo> FindElements(string parentElementId, string? name = null, string? automationId = null, string? controlType = null) => RunOnSta(() =>
+    public IReadOnlyList<ElementInfo> FindElements(string parentElementId, string? name = null, string? automationId = null, string? controlType = null) => RunOnSta(() =>
     {
         var parent = GetCachedElement(parentElementId);
 
@@ -103,7 +97,7 @@ public sealed class WindowsUIAutomationBackend : IUIAutomationBackend
         }
     });
 
-    public List<ElementInfo> GetElementTree(string elementId, int maxDepth = 3) => RunOnSta(() =>
+    public IReadOnlyList<ElementInfo> GetElementTree(string elementId, int maxDepth = 3) => RunOnSta(() =>
     {
         var root = GetCachedElement(elementId);
         var walker = TreeWalker.ControlViewWalker;

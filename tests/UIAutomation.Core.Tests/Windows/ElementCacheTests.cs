@@ -3,7 +3,7 @@ using UIAutomation.Core.Platforms.Windows;
 using System.Windows.Automation;
 using Xunit;
 
-namespace UIAutomation.Core.Tests;
+namespace UIAutomation.Core.Tests.Windows;
 
 public class ElementCacheTests
 {

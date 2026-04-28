@@ -9,16 +9,16 @@ namespace UIAutomation.Core.Services;
 public interface IUIAutomationService
 {
     /// <summary>Lists visible top-level windows on the desktop.</summary>
-    List<ElementInfo> ListWindows();
+    IReadOnlyList<ElementInfo> ListWindows();
 
     /// <summary>Finds elements within a parent element matching the given criteria.</summary>
-    List<ElementInfo> FindElements(string parentElementId, string? name = null, string? automationId = null, string? controlType = null);
+    IReadOnlyList<ElementInfo> FindElements(string parentElementId, string? name = null, string? automationId = null, string? controlType = null);
 
     /// <summary>Gets detailed info about a cached element.</summary>
     ElementInfo? GetElementInfo(string elementId);
 
     /// <summary>Gets the UI subtree under an element, limited to maxDepth levels.</summary>
-    List<ElementInfo> GetElementTree(string elementId, int maxDepth = 3);
+    IReadOnlyList<ElementInfo> GetElementTree(string elementId, int maxDepth = 3);
 
     /// <summary>
     /// Queries elements under a root element with flexible filtering, depth control,
