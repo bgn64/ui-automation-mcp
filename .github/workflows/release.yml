@@ -1,4 +1,4 @@
-name: Release
+whname: Release
 
 on:
   push:
@@ -126,3 +126,113 @@ jobs:
             --head $branch `
             --title "Update Scoop manifest to $version" `
             --body  "Automated update of ``bucket/ui-automation-mcp.json`` for release [``${{ steps.ver.outputs.tag }}``](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.ver.outputs.tag }}).`n`nMerge this PR to make the new version installable via ``scoop update ui-automation-mcp``."
+
+  publish-macos:
+    needs: build-test
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout the tagged commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Compute version from tag
+        id: ver
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          version="${tag#v}"
+          if [ -z "$version" ]; then
+            echo "Empty version derived from tag '$tag'" >&2
+            exit 1
+          fi
+          {
+            echo "version=$version"
+            echo "tag=$tag"
+          } >> "$GITHUB_OUTPUT"
+          echo "Version: $version"
+
+      - name: Publish .app bundle and zip
+        id: pub
+        run: ./publish.sh --version "${{ steps.ver.outputs.version }}"
+
+      - name: Compute SHA-256 of zip
+        id: hash
+        run: |
+          zip="${{ steps.pub.outputs.zip }}"
+          hash=$(shasum -a 256 "$zip" | awk '{print $1}')
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+          # Sidecar .sha256 file so Cask livecheck and ad-hoc verification work.
+          printf '%s *%s' "$hash" "${{ steps.pub.outputs.zipName }}" > "$zip.sha256"
+          echo "SHA-256: $hash"
+
+      - name: Upload macOS assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${{ steps.ver.outputs.tag }}"
+          zip="${{ steps.pub.outputs.zip }}"
+
+          # The Windows publish job runs in parallel and may or may not have
+          # created the release by now. Create-if-missing, then upload only the
+          # macOS-specific assets with --clobber so we never invalidate the
+          # Windows zip's hash recorded in the Scoop manifest.
+          if ! gh release view "$tag" --json tagName >/dev/null 2>&1; then
+            gh release create "$tag" --title "$tag" --generate-notes
+          fi
+
+          gh release upload "$tag" "$zip" "$zip.sha256" --clobber
+
+      - name: Update Cask manifest
+        run: |
+          # Land the cask commit on the tip of main even if main has moved past
+          # the tagged commit (mirrors the Scoop step).
+          git fetch origin main
+          git checkout -B main origin/main
+
+          version="${{ steps.ver.outputs.version }}"
+          hash="${{ steps.hash.outputs.hash }}"
+          manifest="Casks/ui-automation-mcp.rb"
+
+          # Update the version literal and the sha256 line. The cask URL
+          # interpolates `version`, so no other lines need editing. We use BSD
+          # sed flags (compatible with macOS runners).
+          sed -i '' -E "s/^([[:space:]]*version[[:space:]]+)\".*\"/\1\"$version\"/" "$manifest"
+          sed -i '' -E "s/^([[:space:]]*sha256[[:space:]]+).*$/\1\"$hash\"/" "$manifest"
+
+          echo "Updated $manifest:"
+          cat "$manifest"
+
+      - name: Open PR with cask update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No cask changes to commit."
+            exit 0
+          fi
+
+          version="${{ steps.ver.outputs.version }}"
+          tag="${{ steps.ver.outputs.tag }}"
+          branch="cask-manifest/$version"
+
+          git checkout -b "$branch"
+          git add Casks/ui-automation-mcp.rb
+          git commit -m "Update Cask manifest to $version"
+          git push --set-upstream origin "$branch"
+
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "Update Cask manifest to $version" \
+            --body  "Automated update of \`Casks/ui-automation-mcp.rb\` for release [\`$tag\`](${{ github.server_url }}/${{ github.repository }}/releases/tag/$tag).
+
+          Merge this PR to make the new version installable via \`brew upgrade --cask ui-automation-mcp\`."
